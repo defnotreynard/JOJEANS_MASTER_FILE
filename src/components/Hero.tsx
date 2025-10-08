@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, Calendar, Users, Star, Award, Building, PartyPopper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import eventHeroImage from '@/assets/event-hero.jpg';
 
 const Hero = () => {
@@ -41,22 +42,26 @@ const Hero = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
-                variant="secondary"
-                className="bg-white text-primary hover:bg-white/90 shadow-glow group"
-              >
-                Start Planning Your Event
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
+              <Link to="/auth">
+                <Button 
+                  size="lg" 
+                  variant="secondary"
+                  className="bg-white text-primary hover:bg-white/90 shadow-glow group w-full"
+                >
+                  Start Planning Your Event
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
               
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="border-white/50 text-white hover:bg-white/10 backdrop-blur-sm"
-              >
-                View Our Packages
-              </Button>
+              <Link to="/packages">
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="border-white/50 text-white hover:bg-white/10 backdrop-blur-sm w-full"
+                >
+                  View Our Packages
+                </Button>
+              </Link>
             </div>
 
             {/* Trust indicators */}

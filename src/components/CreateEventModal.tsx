@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Calendar, Clock, MapPin, DollarSign } from 'lucide-react';
+import { ArrowLeft, Check, DollarSign, MapPin, Users, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface CreateEventModalProps {
   open: boolean;
@@ -22,25 +24,62 @@ const eventTypes = [
   'Rehearsal Dinner', 'Sangeet', 'Wedding'
 ];
 
-const guestRanges = [
-  { label: 'Less than 50', value: 'less_than_50' },
-  { label: '50-100', value: '50_100' },
-  { label: '100-200', value: '100_200' },
-  { label: 'More than 200', value: 'more_than_200' }
+const packages = [
+  {
+    id: 'silver',
+    name: "🥈 Silver Package",
+    price: "₱69,000",
+    subtitle: "Minimalist Wedding",
+    attendees: "Catering & Décor Only",
+    guestCount: "50-100",
+    features: ["3 menu choices", "Minimalist décor setup", "Basic program flow", "Free bridal bouquet"]
+  },
+  {
+    id: 'gold',
+    name: "🥇 Gold Package", 
+    price: "₱95,000",
+    subtitle: "Classic Wedding",
+    attendees: "Complete Wedding Essentials",
+    guestCount: "100-200",
+    features: ["3 menu choices", "Backdrop styling", "Choose 1 major freebie", "Photo coverage included"],
+    popular: true
+  },
+  {
+    id: 'platinum',
+    name: "💎 Platinum Package",
+    price: "₱199,000", 
+    subtitle: "All-in GOLD Wedding",
+    attendees: "Luxury All-in Experience",
+    guestCount: "200-300",
+    features: ["Free whole lechon", "Church & venue styling", "Photography & prenup", "FREE venue & hotel room"]
+  }
 ];
 
-const budgetRanges = [
-  { label: 'Less than ₱2,000', value: 'less_than_₱2000' },
-  { label: '₱2,000-₱3,000', value: '₱2000_₱3000' },
-  { label: '₱3,000-₱5,000', value: '₱3000_₱5000' },
-  { label: '₱5,000+', value: '₱5000_plus' }
+const services = [
+  { id: 'coordination', name: 'Professional Coordination', category: 'Coordination' },
+  { id: 'styling', name: 'Styling and Decors', category: 'Styling and Decors' },
+  { id: 'catering', name: 'Catering Services', category: 'Catering Services' },
+  { id: 'photo', name: 'Photo and Video', category: 'Photo and Video' },
+  { id: 'sounds', name: 'Sounds and Lights', category: 'Sounds and Lights' },
+  { id: 'cakes', name: 'Cakes / Pica-pica', category: 'Cakes / Pica-pica' },
+  { id: 'invitation', name: 'Invitation / Giveaways', category: 'Invitation / Giveaways' },
+  { id: 'hmua', name: 'HMUA / Host', category: 'HMUA / Host' },
+  { id: 'attires', name: 'Attires / Bouquets', category: 'Attires / Bouquets' },
+  { id: 'car', name: 'Bridal Car', category: 'Bridal Car' },
+  { id: 'ceiling', name: 'Ceiling Works', category: 'Ceiling Works' },
+  { id: 'led', name: 'LED Wall', category: 'LED Wall' },
+  { id: 'tunnel', name: 'Entrance Tunnel', category: 'Entrance Tunnel' },
+  { id: 'dance', name: 'Glass Dance Floor', category: 'Glass Dance Floor' }
 ];
 
-const venueLocations = [
-  'New York City, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ',
-  'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA',
-  'Austin, TX', 'Jacksonville, FL', 'Fort Worth, TX', 'Columbus, OH', 'Charlotte, NC',
-  'San Francisco, CA', 'Indianapolis, IN', 'Seattle, WA', 'Denver, CO', 'Washington, DC'
+const venues = [
+  { id: '1', name: "Tierra Alta", location: "Highland Area", capacity: "250 guests", type: "Mountain Venue" },
+  { id: '2', name: "El Aquino", location: "Waterfront", capacity: "180 guests", type: "Resort Venue" },
+  { id: '3', name: "Praia Sibulan", location: "Sibulan Beach", capacity: "200 guests", type: "Beach Venue" },
+  { id: '4', name: "Pavilion Bayawan", location: "Bayawan City", capacity: "300 guests", type: "Pavilion Venue" },
+  { id: '5', name: "Kakahuyan Santa", location: "Santa Catalina", capacity: "150 guests", type: "Garden Venue" },
+  { id: '6', name: "Floresel Resort Siaton", location: "Siaton", capacity: "220 guests", type: "Resort Venue" },
+  { id: '7', name: "Jaines Bayawan", location: "Bayawan City", capacity: "180 guests", type: "Event Venue" }
 ];
 
 export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEvent }: CreateEventModalProps) {
@@ -48,53 +87,21 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     eventType: '',
+    customEventType: '',
+    selectedPackage: null as any,
+    selectedServices: [] as string[],
     guestCount: '',
-    guestCountRange: '',
+    hasVenue: null as boolean | null,
+    selectedVenue: null as any,
+    customVenue: '',
+    budgetAmount: '',
     eventDate: '',
     eventTime: '',
-    dateFlexible: false,
-    venueBooked: null as boolean | null,
-    venueLocation: '',
-    budgetAmount: '',
-    budgetRange: ''
+    dateFlexible: false
   });
 
-  // Initialize form data when editing
-  React.useEffect(() => {
-    if (editingEvent && open) {
-      setFormData({
-        eventType: editingEvent.event_type || '',
-        guestCount: editingEvent.guest_count?.toString() || '',
-        guestCountRange: editingEvent.guest_count_range || '',
-        eventDate: editingEvent.event_date || '',
-        eventTime: editingEvent.event_time || '',
-        dateFlexible: editingEvent.date_flexible || false,
-        venueBooked: editingEvent.venue_booked,
-        venueLocation: editingEvent.venue_location || '',
-        budgetAmount: editingEvent.budget_amount?.toString() || '',
-        budgetRange: editingEvent.budget_range || ''
-      });
-    } else if (!editingEvent && open) {
-      // Reset form for new event
-      setFormData({
-        eventType: '',
-        guestCount: '',
-        guestCountRange: '',
-        eventDate: '',
-        eventTime: '',
-        dateFlexible: false,
-        venueBooked: null,
-        venueLocation: '',
-        budgetAmount: '',
-        budgetRange: ''
-      });
-    }
-  }, [editingEvent, open]);
-
   const handleNext = () => {
-    if (step < 5) {
-      setStep(step + 1);
-    }
+    setStep(step + 1);
   };
 
   const handleBack = () => {
@@ -104,75 +111,84 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
   };
 
   const handleEventTypeSelect = (type: string) => {
-    setFormData({ ...formData, eventType: type });
+    setFormData({ ...formData, eventType: type, customEventType: '' });
+  };
+
+  const handlePackageSelect = (pkg: any) => {
+    setFormData({ ...formData, selectedPackage: pkg });
+  };
+
+  const handleSkipPackage = () => {
+    setFormData({ ...formData, selectedPackage: null });
+    handleNext();
+  };
+
+  const toggleService = (serviceId: string) => {
+    const newServices = formData.selectedServices.includes(serviceId)
+      ? formData.selectedServices.filter(id => id !== serviceId)
+      : [...formData.selectedServices, serviceId];
+    setFormData({ ...formData, selectedServices: newServices });
+  };
+
+  const handleVenueSelect = (venue: any) => {
+    setFormData({ ...formData, selectedVenue: venue, customVenue: '' });
   };
 
   const handleSubmit = async () => {
     if (!user) return;
 
     try {
-      if (editingEvent) {
-        // Update existing event
-        const eventData = {
-          event_type: formData.eventType,
-          guest_count: formData.guestCount ? parseInt(formData.guestCount) : null,
-          guest_count_range: formData.guestCountRange,
-          event_date: formData.eventDate || null,
-          event_time: formData.eventTime || null,
-          date_flexible: formData.dateFlexible,
-          venue_booked: formData.venueBooked,
-          venue_location: formData.venueLocation || null,
-          budget_amount: formData.budgetAmount ? parseFloat(formData.budgetAmount) : null,
-          budget_range: formData.budgetRange
-        };
+      const { data: refData } = await supabase.rpc('generate_event_reference');
+      
+      const finalEventType = formData.customEventType || formData.eventType;
+      const finalGuestCount = formData.selectedPackage ? formData.selectedPackage.guestCount : formData.guestCount;
+      const finalBudget = formData.selectedPackage ? formData.selectedPackage.price : formData.budgetAmount;
+      const finalVenue = formData.customVenue || formData.selectedVenue?.name || '';
 
-        const { error } = await supabase
-          .from('events')
-          .update(eventData)
-          .eq('id', editingEvent.id);
+      const eventData = {
+        user_id: user.id,
+        reference_id: refData || `EVT-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
+        event_type: finalEventType,
+        guest_count_range: finalGuestCount,
+        event_date: formData.eventDate || null,
+        event_time: formData.eventTime || null,
+        date_flexible: formData.dateFlexible,
+        venue_booked: formData.hasVenue,
+        venue_location: finalVenue,
+        budget_range: finalBudget,
+        // Store additional data as JSON in a text field or create related tables
+        status: 'active'
+      };
 
-        if (error) {
-          console.error('Error updating event:', error);
-          alert('Error updating event: ' + error.message);
-          return;
-        }
+      const { error } = await supabase
+        .from('events')
+        .insert([eventData]);
 
-        alert('Event updated successfully!');
-      } else {
-        // Create new event
-        const { data: refData } = await supabase.rpc('generate_event_reference');
-        
-        const eventData = {
-          user_id: user.id,
-          reference_id: refData || `EVT-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
-          event_type: formData.eventType,
-          guest_count: formData.guestCount ? parseInt(formData.guestCount) : null,
-          guest_count_range: formData.guestCountRange,
-          event_date: formData.eventDate || null,
-          event_time: formData.eventTime || null,
-          date_flexible: formData.dateFlexible,
-          venue_booked: formData.venueBooked,
-          venue_location: formData.venueLocation || null,
-          budget_amount: formData.budgetAmount ? parseFloat(formData.budgetAmount) : null,
-          budget_range: formData.budgetRange
-        };
-
-        const { error } = await supabase
-          .from('events')
-          .insert([eventData]);
-
-        if (error) {
-          console.error('Error creating event:', error);
-          alert('Error creating event: ' + error.message);
-          return;
-        }
-
-        alert('Event created successfully!');
+      if (error) {
+        console.error('Error creating event:', error);
+        alert('Error creating event: ' + error.message);
+        return;
       }
 
+      alert('Event created successfully!');
       onEventCreated();
       onOpenChange(false);
       setStep(1);
+      // Reset form
+      setFormData({
+        eventType: '',
+        customEventType: '',
+        selectedPackage: null,
+        selectedServices: [],
+        guestCount: '',
+        hasVenue: null,
+        selectedVenue: null,
+        customVenue: '',
+        budgetAmount: '',
+        eventDate: '',
+        eventTime: '',
+        dateFlexible: false
+      });
     } catch (error) {
       console.error('Error saving event:', error);
       alert('Error saving event');
@@ -180,241 +196,354 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
   };
 
   const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Choose the event type:</h3>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {eventTypes.map((type) => (
-                <Button
-                  key={type}
-                  variant={formData.eventType === type ? "default" : "outline"}
-                  className="h-auto p-3 text-sm"
-                  onClick={() => handleEventTypeSelect(type)}
-                >
-                  {type}
-                </Button>
-              ))}
-            </div>
+    // Step 1: Event Type
+    if (step === 1) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">Choose the event type:</h3>
           </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">How many guests are you expecting at your event?</h3>
-            </div>
-            <div className="space-y-4">
-              <Input
-                placeholder="Enter guest count"
-                value={formData.guestCount}
-                onChange={(e) => setFormData({ ...formData, guestCount: e.target.value })}
-                type="number"
-              />
-              <div className="text-center text-sm text-muted-foreground">OR</div>
-              <div className="space-y-2">
-                {guestRanges.map((range) => (
-                  <Button
-                    key={range.value}
-                    variant={formData.guestCountRange === range.value ? "default" : "outline"}
-                    className="w-full justify-start"
-                    onClick={() => setFormData({ ...formData, guestCountRange: range.value })}
-                  >
-                    {range.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {eventTypes.map((type) => (
+              <Button
+                key={type}
+                variant={formData.eventType === type ? "default" : "outline"}
+                className="h-auto p-3 text-sm"
+                onClick={() => handleEventTypeSelect(type)}
+              >
+                {type}
+              </Button>
+            ))}
           </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">When is your event?</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.eventDate}
-                  onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="time">Time</Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={formData.eventTime}
-                  onChange={(e) => setFormData({ ...formData, eventTime: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="flexible"
-                checked={formData.dateFlexible}
-                onCheckedChange={(checked) => setFormData({ ...formData, dateFlexible: !!checked })}
-              />
-              <Label htmlFor="flexible" className="text-sm">
-                I'm not sure about the date and time.
-              </Label>
-            </div>
+          <div className="space-y-2">
+            <Label>Or type your custom event:</Label>
+            <Input
+              placeholder="Enter custom event type"
+              value={formData.customEventType}
+              onChange={(e) => setFormData({ ...formData, customEventType: e.target.value, eventType: '' })}
+            />
           </div>
-        );
+        </div>
+      );
+    }
 
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Have you booked your event venue?</h3>
-            </div>
-            <div className="space-y-4">
-              <div className="flex gap-4 justify-center">
-                <Button
-                  variant={formData.venueBooked === true ? "default" : "outline"}
-                  onClick={() => setFormData({ ...formData, venueBooked: true })}
-                >
-                  Yes
-                </Button>
-                <Button
-                  variant={formData.venueBooked === false ? "default" : "outline"}
-                  onClick={() => setFormData({ ...formData, venueBooked: false })}
-                >
-                  No
-                </Button>
-              </div>
-              
-              {formData.venueBooked === false && (
-                <div className="mt-4 p-4 bg-accent/20 rounded-lg">
-                  <div className="flex items-start space-x-2">
-                    <span className="text-lg">🤩</span>
-                    <p className="text-sm text-muted-foreground">
-                      Not yet? No worries! Let's explore the ideal spot together to keep the celebration unforgettable.
-                    </p>
+    // Step 2: Package Selection
+    if (step === 2) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">Choose a Package (Optional)</h3>
+            <p className="text-sm text-muted-foreground">Select a package or skip to customize your own</p>
+          </div>
+          <div className="grid gap-4">
+            {packages.map((pkg) => (
+              <Card 
+                key={pkg.id} 
+                className={`cursor-pointer transition-all ${formData.selectedPackage?.id === pkg.id ? 'ring-2 ring-primary' : ''} ${pkg.popular ? 'border-primary' : ''}`}
+                onClick={() => handlePackageSelect(pkg)}
+              >
+                {pkg.popular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-primary">Most Popular</Badge>
                   </div>
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div className="space-y-2 relative">
-                  <Label htmlFor="location">
-                    {formData.venueBooked === true ? "What's your event venue?" : "What's your preferred venue location?"}
-                  </Label>
-                  <Input
-                    id="location"
-                    placeholder={formData.venueBooked === true ? "Enter venue name" : "Enter preferred location"}
-                    value={formData.venueLocation}
-                    onChange={(e) => setFormData({ ...formData, venueLocation: e.target.value })}
-                  />
-                  
-                  {/* Show filtered suggestions */}
-                  {formData.venueLocation && formData.venueLocation.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 bg-background border rounded-md shadow-lg z-50 max-h-48 overflow-y-auto">
-                      {venueLocations
-                        .filter(location => 
-                          location.toLowerCase().includes(formData.venueLocation.toLowerCase())
-                        )
-                        .slice(0, 5)
-                        .map((location) => (
-                          <button
-                            key={location}
-                            type="button"
-                            className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground text-sm"
-                            onClick={() => setFormData({ ...formData, venueLocation: location })}
-                          >
-                            {location}
-                          </button>
-                        ))
-                      }
+                )}
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center justify-between">
+                    <span>{pkg.name}</span>
+                    <span className="text-2xl font-bold text-primary">{pkg.price}</span>
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">{pkg.subtitle}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Users className="h-4 w-4" />
+                      <span>{pkg.guestCount} guests</span>
                     </div>
+                  </div>
+                  <ul className="space-y-2">
+                    {pkg.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start space-x-2 text-sm">
+                        <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Button variant="outline" className="w-full" onClick={handleSkipPackage}>
+            Skip - Customize My Own Event
+          </Button>
+        </div>
+      );
+    }
+
+    // Step 3: Services (Required if no package, Add-ons if package selected)
+    if (step === 3 && !formData.selectedPackage) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">Select Services</h3>
+            <p className="text-sm text-muted-foreground">Choose the services you need for your event</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+            {services.map((service) => (
+              <div
+                key={service.id}
+                className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                  formData.selectedServices.includes(service.id) ? 'border-primary bg-primary/5' : ''
+                }`}
+                onClick={() => toggleService(service.id)}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{service.name}</p>
+                    <p className="text-xs text-muted-foreground">{service.category}</p>
+                  </div>
+                  {formData.selectedServices.includes(service.id) && (
+                    <Check className="h-5 w-5 text-primary" />
                   )}
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        );
+        </div>
+      );
+    }
 
-      case 5:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">What's your budget for your event?</h3>
-            </div>
-            <div className="space-y-4">
+    // Step 3 (Alternative): Add-on Services if package selected
+    if (step === 3 && formData.selectedPackage) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">Add Extra Services (Optional)</h3>
+            <p className="text-sm text-muted-foreground">Enhance your {formData.selectedPackage.name} with add-ons</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+            {services.map((service) => (
+              <div
+                key={service.id}
+                className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                  formData.selectedServices.includes(service.id) ? 'border-primary bg-primary/5' : ''
+                }`}
+                onClick={() => toggleService(service.id)}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{service.name}</p>
+                    <p className="text-xs text-muted-foreground">{service.category}</p>
+                  </div>
+                  {formData.selectedServices.includes(service.id) && (
+                    <Check className="h-5 w-5 text-primary" />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <Button variant="outline" className="w-full" onClick={handleNext}>
+            Skip Add-ons - Continue
+          </Button>
+        </div>
+      );
+    }
+
+    // Step 4: Guest Count (Only if no package)
+    if (step === 4 && !formData.selectedPackage) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">How many guests?</h3>
+          </div>
+          <Input
+            placeholder="Enter guest count or range (e.g., 50-100)"
+            value={formData.guestCount}
+            onChange={(e) => setFormData({ ...formData, guestCount: e.target.value })}
+          />
+        </div>
+      );
+    }
+
+    // Determine next step number for venue
+    const venueStep = formData.selectedPackage ? 4 : 5;
+    
+    // Venue Selection
+    if (step === venueStep) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">Do you have a venue?</h3>
+          </div>
+          <div className="flex gap-4 justify-center">
+            <Button
+              variant={formData.hasVenue === true ? "default" : "outline"}
+              onClick={() => setFormData({ ...formData, hasVenue: true, selectedVenue: null })}
+            >
+              Yes
+            </Button>
+            <Button
+              variant={formData.hasVenue === false ? "default" : "outline"}
+              onClick={() => setFormData({ ...formData, hasVenue: false, customVenue: '' })}
+            >
+              No
+            </Button>
+          </div>
+          
+          {formData.hasVenue === true && (
+            <div className="space-y-2">
+              <Label>Enter your venue name:</Label>
               <Input
-                placeholder="Enter Your Budget"
-                value={formData.budgetAmount}
-                onChange={(e) => setFormData({ ...formData, budgetAmount: e.target.value })}
-                type="number"
+                placeholder="Venue name"
+                value={formData.customVenue}
+                onChange={(e) => setFormData({ ...formData, customVenue: e.target.value })}
               />
-              <div className="text-center text-sm text-muted-foreground">OR</div>
-              <div className="space-y-2">
-                {budgetRanges.map((range) => (
-                  <Button
-                    key={range.value}
-                    variant={formData.budgetRange === range.value ? "default" : "outline"}
-                    className="w-full justify-start"
-                    onClick={() => setFormData({ ...formData, budgetRange: range.value })}
+            </div>
+          )}
+
+          {formData.hasVenue === false && (
+            <div className="space-y-4">
+              <p className="text-sm text-center text-muted-foreground">Choose from our partner venues:</p>
+              <div className="grid gap-3 max-h-96 overflow-y-auto">
+                {venues.map((venue) => (
+                  <Card
+                    key={venue.id}
+                    className={`cursor-pointer transition-all ${formData.selectedVenue?.id === venue.id ? 'ring-2 ring-primary' : ''}`}
+                    onClick={() => handleVenueSelect(venue)}
                   >
-                    {range.label}
-                  </Button>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold">{venue.name}</h4>
+                          <p className="text-sm text-muted-foreground flex items-center space-x-1">
+                            <MapPin className="h-3 w-3" />
+                            <span>{venue.location}</span>
+                          </p>
+                          <div className="flex items-center space-x-4 mt-2">
+                            <Badge variant="secondary">{venue.type}</Badge>
+                            <span className="text-xs text-muted-foreground">{venue.capacity}</span>
+                          </div>
+                        </div>
+                        {formData.selectedVenue?.id === venue.id && (
+                          <Check className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             </div>
-          </div>
-        );
-
-      default:
-        return null;
+          )}
+        </div>
+      );
     }
+
+    // Budget (Only if no package)
+    const budgetStep = formData.selectedPackage ? 5 : 6;
+    if (step === budgetStep && !formData.selectedPackage) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">What's your budget?</h3>
+          </div>
+          <Input
+            placeholder="Enter your budget (e.g., ₱50,000 or ₱30,000-₱50,000)"
+            value={formData.budgetAmount}
+            onChange={(e) => setFormData({ ...formData, budgetAmount: e.target.value })}
+          />
+        </div>
+      );
+    }
+
+    // Date & Time (Final step for both flows)
+    const finalStep = formData.selectedPackage ? 5 : 6;
+    if (step === finalStep || (step === 7 && !formData.selectedPackage)) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">When is your event? (Optional)</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="date">Date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.eventDate}
+                onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="time">Time</Label>
+              <Input
+                id="time"
+                type="time"
+                value={formData.eventTime}
+                onChange={(e) => setFormData({ ...formData, eventTime: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="flexible"
+              checked={formData.dateFlexible}
+              onCheckedChange={(checked) => setFormData({ ...formData, dateFlexible: !!checked })}
+            />
+            <Label htmlFor="flexible" className="text-sm">
+              I'm not sure about the date and time.
+            </Label>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   const getStepTitle = () => {
-    const prefix = editingEvent ? "Edit your Event" : "Let's Create your Event";
     switch (step) {
-      case 1: return `${prefix} 🎉`;
-      case 2: return "Event Guest Count 👥";
-      case 3: return "Date & Time 📅";
-      case 4: return "Event Venue 📍";
-      case 5: return "Event Budget 💰";
-      default: return "";
-    }
-  };
-
-  const getStepIcon = () => {
-    switch (step) {
-      case 1: return "🎉";
-      case 2: return "👥";
-      case 3: return "📅";
-      case 4: return "📍";
-      case 5: return "💰";
+      case 1: return "Let's Create your Event 🎉";
+      case 2: return "Choose Your Package 📦";
+      case 3: return formData.selectedPackage ? "Add-on Services (Optional) ✨" : "Select Services 🛠️";
+      case 4: return formData.selectedPackage ? "Event Venue 📍" : "Guest Count 👥";
+      case 5: return formData.selectedPackage ? "Event Date 📅" : "Event Venue 📍";
+      case 6: return formData.selectedPackage ? "" : "Event Budget 💰";
+      case 7: return "Event Date 📅";
       default: return "";
     }
   };
 
   const canProceed = () => {
     switch (step) {
-      case 1: return formData.eventType;
-      case 2: return formData.guestCount || formData.guestCountRange;
-      case 3: return true; // Date/time is optional
-      case 4: return formData.venueBooked !== null;
-      case 5: return formData.budgetAmount || formData.budgetRange;
+      case 1: return formData.eventType || formData.customEventType;
+      case 2: return true; // Package is optional
+      case 3: return true; // Services are optional or can be skipped
+      case 4: 
+        if (formData.selectedPackage) {
+          return formData.hasVenue !== null && (formData.hasVenue ? formData.customVenue : formData.selectedVenue);
+        }
+        return formData.guestCount;
+      case 5: 
+        if (formData.selectedPackage) {
+          return true; // Date is optional
+        }
+        return formData.hasVenue !== null && (formData.hasVenue ? formData.customVenue : formData.selectedVenue);
+      case 6: return formData.budgetAmount;
+      case 7: return true; // Date is optional
       default: return false;
     }
   };
 
+  const isLastStep = () => {
+    if (formData.selectedPackage) {
+      return step === 5;
+    }
+    return step === 7;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center space-x-2">
             {step > 1 && (
@@ -422,9 +551,8 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <DialogTitle className="flex items-center space-x-2">
-              <span>{getStepIcon()}</span>
-              <span>{getStepTitle()}</span>
+            <DialogTitle>
+              {getStepTitle()}
             </DialogTitle>
           </div>
         </DialogHeader>
@@ -434,7 +562,7 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
         </div>
 
         <div className="flex justify-end space-x-2">
-          {step < 5 && (
+          {!isLastStep() && (
             <Button
               onClick={handleNext}
               disabled={!canProceed()}
@@ -443,13 +571,12 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
               Next
             </Button>
           )}
-          {step === 5 && (
+          {isLastStep() && (
             <Button
               onClick={handleSubmit}
-              disabled={!canProceed()}
               className="w-full bg-wedding-charcoal hover:bg-wedding-charcoal/90 text-white"
             >
-              {editingEvent ? 'Update Event' : 'Create Event'}
+              Create Event
             </Button>
           )}
         </div>

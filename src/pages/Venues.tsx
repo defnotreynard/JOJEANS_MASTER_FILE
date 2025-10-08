@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { MapPin, Star, Users, Calendar, ArrowRight } from 'lucide-react';
@@ -6,8 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import VenueDetailsModal from '@/components/VenueDetailsModal';
 
 const Venues = () => {
+  const [selectedVenue, setSelectedVenue] = useState<typeof venues[0] | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const venues = [
     {
       name: "Tierra Alta",
@@ -16,7 +20,20 @@ const Venues = () => {
       rating: 4.9,
       image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       type: "Mountain Venue",
-      price: "$$$$"
+      price: "$$$$",
+      description: "A breathtaking mountain venue offering panoramic views and luxurious facilities for unforgettable events.",
+      amenities: ["Mountain Views", "Outdoor Garden", "Indoor Hall", "Parking Space", "Catering Kitchen", "Bridal Suite"],
+      images: [
+        "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1478146896981-b80fe463b330?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1470229538611-16ba8c7ffbd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+      ],
+      contactPhone: "+63 912 345 6789",
+      contactEmail: "tierraalta@venue.com",
+      operatingHours: "8:00 AM - 11:00 PM"
     },
     {
       name: "El Aquino",
@@ -25,7 +42,18 @@ const Venues = () => {
       rating: 4.8,
       image: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       type: "Resort Venue",
-      price: "$$$"
+      price: "$$$",
+      description: "A stunning waterfront resort perfect for elegant celebrations with beautiful sunset views and modern amenities.",
+      amenities: ["Waterfront Access", "Swimming Pool", "Restaurant", "Bar", "Wi-Fi", "Sound System"],
+      images: [
+        "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1510076857177-7470076d4098?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+      ],
+      contactPhone: "+63 912 345 6790",
+      contactEmail: "elaquino@venue.com",
+      operatingHours: "9:00 AM - 10:00 PM"
     },
     {
       name: "Praia Sibulan",
@@ -34,7 +62,19 @@ const Venues = () => {
       rating: 4.9,
       image: "https://images.unsplash.com/photo-1510076857177-7470076d4098?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       type: "Beach Venue",
-      price: "$$$$"
+      price: "$$$$",
+      description: "An exclusive beachfront venue offering pristine white sand and crystal-clear waters for your dream beach wedding.",
+      amenities: ["Private Beach", "Gazebo", "Changing Rooms", "Beach Chairs", "Tents Available", "Lighting Setup"],
+      images: [
+        "https://images.unsplash.com/photo-1510076857177-7470076d4098?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1473186578172-c141e6798cf4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1519046904884-53103b34b206?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1505142468610-359e7d316be0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+      ],
+      contactPhone: "+63 912 345 6791",
+      contactEmail: "praiasibulan@venue.com",
+      operatingHours: "7:00 AM - 9:00 PM"
     },
     {
       name: "Pavilion Bayawan",
@@ -43,7 +83,17 @@ const Venues = () => {
       rating: 4.7,
       image: "https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       type: "Pavilion Venue",
-      price: "$$$"
+      price: "$$$",
+      description: "A spacious pavilion venue ideal for large gatherings with flexible indoor and outdoor spaces.",
+      amenities: ["Large Hall", "Stage Area", "Kitchen", "Restrooms", "Air Conditioning", "Tables & Chairs"],
+      images: [
+        "https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+      ],
+      contactPhone: "+63 912 345 6792",
+      contactEmail: "pavilionbayawan@venue.com",
+      operatingHours: "8:00 AM - 10:00 PM"
     },
     {
       name: "Kakahuyan Santa",
@@ -52,7 +102,18 @@ const Venues = () => {
       rating: 4.8,
       image: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       type: "Garden Venue",
-      price: "$$$"
+      price: "$$$",
+      description: "A serene garden venue surrounded by lush greenery, perfect for intimate and romantic celebrations.",
+      amenities: ["Garden Setting", "Fountain", "Gazebo", "Outdoor Seating", "Pathway Lighting", "Photo Spots"],
+      images: [
+        "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1470229538611-16ba8c7ffbd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1426604966848-d7adac402bff?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+      ],
+      contactPhone: "+63 912 345 6793",
+      contactEmail: "kakahuyansanta@venue.com",
+      operatingHours: "7:00 AM - 9:00 PM"
     },
     {
       name: "Floresel Resort Siaton",
@@ -61,7 +122,18 @@ const Venues = () => {
       rating: 4.9,
       image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       type: "Resort Venue",
-      price: "$$$$"
+      price: "$$$$",
+      description: "An upscale resort venue offering luxury accommodations and exceptional service for premium events.",
+      amenities: ["Pool Area", "Conference Room", "Restaurant", "Hotel Rooms", "Spa", "Activity Center"],
+      images: [
+        "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+      ],
+      contactPhone: "+63 912 345 6794",
+      contactEmail: "floresel@venue.com",
+      operatingHours: "24/7"
     },
     {
       name: "Jaines Bayawan",
@@ -70,7 +142,17 @@ const Venues = () => {
       rating: 4.7,
       image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       type: "Event Venue",
-      price: "$$$"
+      price: "$$$",
+      description: "A versatile event venue with modern facilities perfect for corporate events, weddings, and special occasions.",
+      amenities: ["Function Hall", "Audio Visual Equipment", "Catering Services", "Ample Parking", "Climate Control", "Professional Staff"],
+      images: [
+        "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+      ],
+      contactPhone: "+63 912 345 6795",
+      contactEmail: "jaines@venue.com",
+      operatingHours: "8:00 AM - 11:00 PM"
     }
   ];
 
@@ -175,7 +257,14 @@ const Venues = () => {
                     </div>
                   </div>
 
-                  <Button variant="outline" className="w-full group/btn">
+                  <Button 
+                    variant="outline" 
+                    className="w-full group/btn"
+                    onClick={() => {
+                      setSelectedVenue(venue);
+                      setIsModalOpen(true);
+                    }}
+                  >
                     View Details
                     <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                   </Button>
@@ -185,6 +274,15 @@ const Venues = () => {
           </div>
         </div>
       </section>
+
+      <VenueDetailsModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedVenue(null);
+        }}
+        venue={selectedVenue}
+      />
 
       <Footer />
     </div>

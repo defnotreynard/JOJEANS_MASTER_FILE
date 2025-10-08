@@ -36,18 +36,10 @@ const Navigation = () => {
   ];
 
 
-  const weddingCategories = {
-    "Wedding Styles": [
+  const galleryCategories = {
+    "Gallery Styles": [
       "Classic Elegance", "Modern Chic", "Rustic Charm", "Bohemian",
       "Garden Party", "Beach Wedding", "Destination Wedding", "Intimate Ceremonies"
-    ],
-    "Wedding Services": [
-      "Full Wedding Planning", "Day-of Coordination", "Bridal Styling",
-      "Venue Sourcing", "Vendor Management", "Timeline Creation"
-    ],
-    "Wedding Inspiration": [
-      "Real Weddings", "Style Guides", "Color Palettes", "Seasonal Themes",
-      "Cultural Celebrations", "Budget-Friendly Ideas"
     ]
   };
 
@@ -137,27 +129,11 @@ const Navigation = () => {
                   </NavigationMenuItem>
 
 
-                  {/* Weddings */}
+                  {/* Gallery */}
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger>Weddings</NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <div className="grid gap-6 p-6 w-[800px] grid-cols-3">
-                        {Object.entries(weddingCategories).map(([category, items]) => (
-                          <div key={category}>
-                            <h4 className="text-sm font-semibold mb-3 text-primary">{category}</h4>
-                            <ul className="space-y-2">
-                              {items.map((item) => (
-                                <li key={item}>
-                                  <Link to="/weddings" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                                    {item}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                    </NavigationMenuContent>
+                    <Link to="/gallery" className="inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                      Gallery
+                    </Link>
                   </NavigationMenuItem>
 
                   {/* Venues */}
@@ -168,7 +144,7 @@ const Navigation = () => {
                   </NavigationMenuItem>
 
                   {/* Shop */}
-                  <NavigationMenuItem>
+                  {/* <NavigationMenuItem>
                     <NavigationMenuTrigger>Shop</NavigationMenuTrigger>
                     <NavigationMenuContent>
                       <div className="grid gap-6 p-6 w-[800px] grid-cols-3">
@@ -188,7 +164,7 @@ const Navigation = () => {
                         ))}
                       </div>
                     </NavigationMenuContent>
-                  </NavigationMenuItem>
+                  </NavigationMenuItem> */}
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
@@ -284,8 +260,8 @@ const Navigation = () => {
                       <Link to="/packages" className="block py-2 text-lg font-medium" onClick={() => setIsOpen(false)}>
                         Packages/Services
                       </Link>
-                      <Link to="/weddings" className="block py-2 text-lg font-medium" onClick={() => setIsOpen(false)}>
-                        Weddings
+                      <Link to="/gallery" className="block py-2 text-lg font-medium" onClick={() => setIsOpen(false)}>
+                        Gallery
                       </Link>
                       <Link to="/venues" className="block py-2 text-lg font-medium" onClick={() => setIsOpen(false)}>
                         Venues

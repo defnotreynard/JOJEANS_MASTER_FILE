@@ -14,6 +14,7 @@ import SilverPackage from "./pages/SilverPackage";
 import GoldPackage from "./pages/GoldPackage";
 import PlatinumPackage from "./pages/PlatinumPackage";
 import Weddings from "./pages/Weddings";
+import Gallery from "./pages/Gallery";
 import Shop from "./pages/Shop";
 import Services from "./pages/Services";
 import Venues from "./pages/Venues";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/packages/gold" element={<GoldPackage />} />
             <Route path="/packages/platinum" element={<PlatinumPackage />} />
             <Route path="/weddings" element={<Weddings />} />
+            <Route path="/gallery" element={<Gallery />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/services" element={<Services />} />
             <Route path="/venues" element={<Venues />} />

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const FeaturedTools = () => {
   const tools = [
@@ -99,20 +100,24 @@ const FeaturedTools = () => {
                 Join thousands of couples who have planned their dream wedding with our free tools.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  size="lg" 
-                  variant="secondary"
-                  className="bg-background text-primary hover:bg-background/90 shadow-lg"
-                >
-                  Create Free Account
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
-                >
-                  Explore Tools
-                </Button>
+                <Link to="/auth">
+                  <Button 
+                    size="lg" 
+                    variant="secondary"
+                    className="bg-background text-primary hover:bg-background/90 shadow-lg"
+                  >
+                    Create Free Account
+                  </Button>
+                </Link>
+                <Link to="#tools">
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+                  >
+                    Explore Tools
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
