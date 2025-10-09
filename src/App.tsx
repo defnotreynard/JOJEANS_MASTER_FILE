@@ -9,7 +9,7 @@ import RecentEvents from "./pages/RecentEvents";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
-import Packages from "./pages/Packages";
+import Packages from "./pages/SilverPackage";
 import SilverPackage from "./pages/SilverPackage";
 import GoldPackage from "./pages/GoldPackage";
 import PlatinumPackage from "./pages/PlatinumPackage";
