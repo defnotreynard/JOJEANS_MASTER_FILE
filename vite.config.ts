@@ -12,5 +12,5 @@ export default defineConfig({
   build: {
     outDir: "dist",
   },
-  base: "./", // ⬅️ Add this line
+  base: "./", // <-- this fixes the MIME issue on Vercel
 });
