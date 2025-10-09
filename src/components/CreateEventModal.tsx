@@ -560,14 +560,16 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
       case 3: return true; // Services are optional or can be skipped
       case 4: 
         if (formData.selectedPackage) {
-          return formData.hasVenue !== null && (formData.hasVenue ? formData.customVenue : formData.selectedVenue);
+          // Only require that they answered yes/no to venue question
+          return formData.hasVenue !== null;
         }
         return formData.guestCount;
       case 5: 
         if (formData.selectedPackage) {
           return true; // Date is optional
         }
-        return formData.hasVenue !== null && (formData.hasVenue ? formData.customVenue : formData.selectedVenue);
+        // Only require that they answered yes/no to venue question
+        return formData.hasVenue !== null;
       case 6: return formData.budgetAmount;
       case 7: return true; // Date is optional
       default: return false;

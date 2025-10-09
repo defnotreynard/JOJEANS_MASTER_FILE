@@ -274,8 +274,13 @@ export function AuthModal({ isOpen, onClose, defaultMode = "signin" }: AuthModal
                       <FormLabel>Full Name</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter your full name" className="pl-10" {...field} />
+                          <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <Input 
+                            placeholder="Enter your full name" 
+                            className="pl-10" 
+                            disabled={loading}
+                            {...field} 
+                          />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -291,8 +296,13 @@ export function AuthModal({ isOpen, onClose, defaultMode = "signin" }: AuthModal
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="Enter your phone number" className="pl-10" {...field} />
+                          <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <Input 
+                            placeholder="Enter your phone number" 
+                            className="pl-10"
+                            disabled={loading}
+                            {...field} 
+                          />
                         </div>
                       </FormControl>
                       <FormMessage />

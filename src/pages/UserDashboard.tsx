@@ -289,8 +289,8 @@ const UserDashboard = () => {
                               <div className="text-[10px] sm:text-xs text-muted-foreground">Budget</div>
                             </div>
                             <div className="bg-wedding-sage/20 rounded-lg p-2 sm:p-3 text-center">
-                              <div className="text-sm sm:text-lg lg:text-2xl font-bold text-wedding-charcoal">
-                                {event.venue_booked ? 'Yes' : 'No'}
+                              <div className="text-xs sm:text-sm lg:text-lg font-bold text-wedding-charcoal break-words">
+                                {event.venue_location || 'Not booked'}
                               </div>
                               <div className="text-[10px] sm:text-xs text-muted-foreground">Venue</div>
                             </div>
