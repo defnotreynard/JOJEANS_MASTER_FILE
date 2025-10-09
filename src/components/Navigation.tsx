@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/AuthModal';
 
@@ -20,6 +21,8 @@ const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [packagesOpen, setPackagesOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -257,17 +260,77 @@ const Navigation = () => {
                     </div>
                     
                     <div className="space-y-3 pt-4">
-                      <Link to="/packages" className="block py-2 text-lg font-medium" onClick={() => setIsOpen(false)}>
-                        Packages/Services
-                      </Link>
+                      {/* Packages Collapsible */}
+                      <Collapsible open={packagesOpen} onOpenChange={setPackagesOpen}>
+                        <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-lg font-medium">
+                          Packages
+                          <ChevronDown className={`h-4 w-4 transition-transform ${packagesOpen ? 'rotate-180' : ''}`} />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-4 space-y-2 pt-2">
+                          {weddingPackages.map((pkg) => (
+                            <Link 
+                              key={pkg.name}
+                              to={pkg.href} 
+                              className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              {pkg.name} <span className="text-xs">({pkg.promoCode})</span>
+                            </Link>
+                          ))}
+                        </CollapsibleContent>
+                      </Collapsible>
+
+                      {/* Services Collapsible */}
+                      <Collapsible open={servicesOpen} onOpenChange={setServicesOpen}>
+                        <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-lg font-medium">
+                          Services
+                          <ChevronDown className={`h-4 w-4 transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-4 space-y-2 pt-2">
+                          <Link to="/services#coordination" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            Coordination
+                          </Link>
+                          <Link to="/services#styling-decors" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            Styling and Decors
+                          </Link>
+                          <Link to="/services#catering" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            Catering Services
+                          </Link>
+                          <Link to="/services#photo-video" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            Photo and Video
+                          </Link>
+                          <Link to="/services#sounds-lights" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            Sounds and Lights
+                          </Link>
+                          <Link to="/services#cakes-pica" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            Cakes / Pica-pica
+                          </Link>
+                          <Link to="/services#invitation-giveaways" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            Invitation / Giveaways
+                          </Link>
+                          <Link to="/services#hmua-host" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            HMUA / Host
+                          </Link>
+                          <Link to="/services#attires-bouquets" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            Attires / Bouquets
+                          </Link>
+                          <Link to="/services#bridal-car" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            Bridal Car
+                          </Link>
+                          <Link to="/services#ceiling-works" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            Ceiling Works/Glass Dance Floor
+                          </Link>
+                          <Link to="/services#led-wall" className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
+                            LED Wall/Entrance Tunnel
+                          </Link>
+                        </CollapsibleContent>
+                      </Collapsible>
+
                       <Link to="/gallery" className="block py-2 text-lg font-medium" onClick={() => setIsOpen(false)}>
                         Gallery
                       </Link>
                       <Link to="/venues" className="block py-2 text-lg font-medium" onClick={() => setIsOpen(false)}>
                         Venues
-                      </Link>
-                      <Link to="/shop" className="block py-2 text-lg font-medium" onClick={() => setIsOpen(false)}>
-                        Shop
                       </Link>
                     </div>
                     

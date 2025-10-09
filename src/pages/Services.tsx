@@ -318,7 +318,7 @@ const Services = () => {
       </section>
 
       {/* Filter Tabs */}
-      <section className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
+      <section className=" top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
         <div className="container mx-auto px-4 py-2 overflow-x-auto">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
             <TabsList className="inline-flex h-auto gap-2 bg-transparent p-0 w-full justify-start md:justify-center flex-wrap">
