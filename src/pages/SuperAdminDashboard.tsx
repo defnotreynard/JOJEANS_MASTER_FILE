@@ -64,7 +64,7 @@ export default function SuperAdminDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-background w-full">
+    <div className="flex h-screen bg-background w-full page-transition">
       <SuperAdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <SuperAdminHeader />

@@ -123,12 +123,16 @@ const UserDashboard = () => {
   const getGuestDisplay = (count: number | null, range: string | null) => {
     if (count) return count.toString();
     if (range) {
+      // Handle package format ranges (e.g., "50-100") directly
+      if (range.includes('-')) return `${range} guests`;
+      
+      // Handle legacy enum format
       switch (range) {
         case 'less_than_50': return 'Less than 50';
         case '50_100': return '50-100';
         case '100_200': return '100-200';
         case 'more_than_200': return 'More than 200';
-        default: return 'Not specified';
+        default: return range; // Return as-is if it's a custom format
       }
     }
     return 'Not specified';
@@ -137,12 +141,13 @@ const UserDashboard = () => {
   const getBudgetDisplay = (amount: number | null, range: string | null) => {
     if (amount) return `₱${amount.toLocaleString()}`;
     if (range) {
+      // Handle legacy enum format
       switch (range) {
         case 'less_than_₱2000': return 'Less than ₱2,000';
         case '₱2000_₱3000': return '₱2,000-₱3,000';
         case '₱3000_₱5000': return '₱3,000-₱5,000';
         case '₱5000_plus': return '₱5,000+';
-        default: return 'Not specified';
+        default: return range; // Return as-is if it's a custom format
       }
     }
     return 'Not specified';
@@ -184,7 +189,7 @@ const UserDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background page-transition">
       <Navigation />
       
       <div className="flex">

@@ -109,7 +109,7 @@ const Weddings = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background page-transition">
       <Navigation />
       
       <main>

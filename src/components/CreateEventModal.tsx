@@ -141,23 +141,63 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
       const { data: refData } = await supabase.rpc('generate_event_reference');
       
       const finalEventType = formData.customEventType || formData.eventType;
-      const finalGuestCount = formData.selectedPackage ? formData.selectedPackage.guestCount : formData.guestCount;
-      const finalBudget = formData.selectedPackage ? formData.selectedPackage.price : formData.budgetAmount;
+      
+      // Parse guest count from package or form
+      let guestCount = null;
+      let guestCountRange = null;
+      if (formData.selectedPackage) {
+        guestCountRange = formData.selectedPackage.guestCount; // "50-100" format
+      } else if (formData.guestCount) {
+        // Try to parse as number, otherwise store as range
+        const parsed = parseInt(formData.guestCount);
+        if (!isNaN(parsed)) {
+          guestCount = parsed;
+        } else {
+          guestCountRange = formData.guestCount;
+        }
+      }
+
+      // Parse budget from package or form
+      let budgetAmount = null;
+      let budgetRange = null;
+      if (formData.selectedPackage) {
+        // Parse "₱69,000" to number
+        const priceStr = formData.selectedPackage.price.replace(/[₱,]/g, '');
+        budgetAmount = parseFloat(priceStr);
+      } else if (formData.budgetAmount) {
+        // Try to parse as number, otherwise store as range
+        const parsed = parseFloat(formData.budgetAmount.replace(/[₱,]/g, ''));
+        if (!isNaN(parsed)) {
+          budgetAmount = parsed;
+        } else {
+          budgetRange = formData.budgetAmount;
+        }
+      }
+
       const finalVenue = formData.customVenue || formData.selectedVenue?.name || '';
+      
+      // Determine if venue is booked:
+      // - If hasVenue is true (user already has venue) and they entered a custom venue name
+      // - If hasVenue is false (no venue yet) but they selected one from our list
+      const isVenueBooked = Boolean(
+        (formData.hasVenue === true && formData.customVenue) || 
+        (formData.hasVenue === false && formData.selectedVenue !== null)
+      );
 
       const eventData = {
         user_id: user.id,
         reference_id: refData || `EVT-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
         event_type: finalEventType,
-        guest_count_range: finalGuestCount,
+        guest_count: guestCount,
+        guest_count_range: guestCountRange,
         event_date: formData.eventDate || null,
         event_time: formData.eventTime || null,
         date_flexible: formData.dateFlexible,
-        venue_booked: formData.hasVenue,
+        venue_booked: isVenueBooked,
         venue_location: finalVenue,
-        budget_range: finalBudget,
-        // Store additional data as JSON in a text field or create related tables
-        status: 'active'
+        budget_amount: budgetAmount,
+        budget_range: budgetRange,
+        status: 'pending'
       };
 
       const { error } = await supabase

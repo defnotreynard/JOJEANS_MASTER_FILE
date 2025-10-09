@@ -137,4 +137,9 @@ All colors MUST be HSL. Turquoise (#00bfa6) primary brand with elegant wedding a
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
   }
+
+  /* Page transition animations */
+  .page-transition {
+    animation: fade-in 0.4s ease-out, scale-in 0.3s ease-out;
+  }
 }

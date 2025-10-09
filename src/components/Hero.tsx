@@ -28,7 +28,7 @@ const Hero = () => {
                 <span>Professional Event Management</span>
               </div>
               
-              <h1 className="text-5xl lg:text-8xl font-heading font-bold text-white leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-heading font-bold text-white leading-tight">
                 Create
                 <span className="block bg-gradient-to-r from-wedding-gold to-wedding-cream bg-clip-text text-transparent">
                   Unforgettable
@@ -36,28 +36,26 @@ const Hero = () => {
                 <span className="block text-white">Events</span>
               </h1>
               
-              <p className="text-xl lg:text-2xl text-white/90 leading-relaxed max-w-2xl">
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 leading-relaxed max-w-2xl">
                 From corporate galas to intimate celebrations - we bring your vision to life with seamless planning, premium services, and flawless execution.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/auth">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <Link to="/auth" className="w-full sm:w-auto">
                 <Button 
-                  size="lg" 
-                  variant="secondary"
-                  className="bg-white text-primary hover:bg-white/90 shadow-glow group w-full"
+                  className="bg-white text-primary hover:bg-white/90 shadow-glow group w-full h-10 sm:h-11 text-sm sm:text-base px-4 sm:px-8"
                 >
-                  Start Planning Your Event
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  <span className="hidden sm:inline">Start Planning Your Event</span>
+                  <span className="sm:hidden">Start Planning</span>
+                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               
-              <Link to="/packages">
+              <Link to="/packages" className="w-full sm:w-auto">
                 <Button 
-                  size="lg" 
+                  className="border-white/50 text-white hover:bg-white/10 backdrop-blur-sm w-full h-10 sm:h-11 text-sm sm:text-base px-4 sm:px-8"
                   variant="outline"
-                  className="border-white/50 text-white hover:bg-white/10 backdrop-blur-sm w-full"
                 >
                   View Our Packages
                 </Button>
@@ -65,33 +63,33 @@ const Hero = () => {
             </div>
 
             {/* Trust indicators */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 pt-6 sm:pt-8">
               <div className="flex items-center space-x-2 text-white/90">
-                <Star className="h-5 w-5 text-wedding-gold" />
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-wedding-gold" />
                 <div>
-                  <div className="font-bold">500+</div>
-                  <div className="text-sm">Events Completed</div>
+                  <div className="font-bold text-sm sm:text-base">500+</div>
+                  <div className="text-xs sm:text-sm">Events Completed</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2 text-white/90">
-                <Users className="h-5 w-5 text-wedding-cream" />
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-wedding-cream" />
                 <div>
-                  <div className="font-bold">1000+</div>
-                  <div className="text-sm">Happy Clients</div>
+                  <div className="font-bold text-sm sm:text-base">1000+</div>
+                  <div className="text-xs sm:text-sm">Happy Clients</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2 text-white/90">
-                <Building className="h-5 w-5 text-wedding-gold" />
+                <Building className="h-4 w-4 sm:h-5 sm:w-5 text-wedding-gold" />
                 <div>
-                  <div className="font-bold">200+</div>
-                  <div className="text-sm">Premium Venues</div>
+                  <div className="font-bold text-sm sm:text-base">200+</div>
+                  <div className="text-xs sm:text-sm">Premium Venues</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2 text-white/90">
-                <Award className="h-5 w-5 text-wedding-cream" />
+                <Award className="h-4 w-4 sm:h-5 sm:w-5 text-wedding-cream" />
                 <div>
-                  <div className="font-bold">5 Star</div>
-                  <div className="text-sm">Rated Service</div>
+                  <div className="font-bold text-sm sm:text-base">5 Star</div>
+                  <div className="text-xs sm:text-sm">Rated Service</div>
                 </div>
               </div>
             </div>

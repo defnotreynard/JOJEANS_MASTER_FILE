@@ -44,17 +44,17 @@ const PackageGalleryCard = ({ packageNumber }: { packageNumber: number }) => {
               {celebrant.event}
             </div>
             
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h3 className="text-xl font-bold mb-1 drop-shadow-lg">{celebrant.name}</h3>
-              <p className="text-sm text-white/80 font-light">Platinum Package Experience</p>
+            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-6 text-white">
+              <h3 className="text-base sm:text-xl font-bold mb-1 drop-shadow-lg">{celebrant.name}</h3>
+              <p className="text-xs sm:text-sm text-white/80 font-light">Platinum Package Experience</p>
             </div>
           </div>
           
-          <CardContent className="p-5">
+          <CardContent className="p-3 sm:p-5">
             <Button 
               onClick={() => setIsOpen(true)}
               size="sm"
-              className="w-full bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+              className="w-full bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold text-xs sm:text-sm h-8 sm:h-9"
             >
               View Details
             </Button>
@@ -63,9 +63,9 @@ const PackageGalleryCard = ({ packageNumber }: { packageNumber: number }) => {
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-3xl font-heading font-bold">Platinum Package - {celebrant.name}</DialogTitle>
+            <DialogTitle className="text-xl sm:text-2xl md:text-3xl font-heading font-bold">Platinum Package - {celebrant.name}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-6">
@@ -88,50 +88,48 @@ const PackageGalleryCard = ({ packageNumber }: { packageNumber: number }) => {
             </Carousel>
 
             <div className="space-y-4">
-              <div className="bg-gradient-to-r from-primary/10 to-accent/10 p-6 rounded-xl">
-                <p className="text-3xl font-bold text-primary mb-2">₱199,000</p>
-                <p className="text-sm text-muted-foreground">Luxury All-in Wedding Experience</p>
+              <div className="bg-gradient-to-r from-primary/10 to-accent/10 p-4 sm:p-6 rounded-xl">
+                <p className="text-2xl sm:text-3xl font-bold text-primary mb-2">₱199,000</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Luxury All-in Wedding Experience</p>
               </div>
 
               <div className="space-y-3">
-                <h4 className="font-semibold text-lg">Package Inclusions:</h4>
-                <ul className="space-y-2 text-sm">
+                <h4 className="font-semibold text-base sm:text-lg">Package Inclusions:</h4>
+                <ul className="space-y-2 text-xs sm:text-sm">
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
                     <span>3 main courses, rice, drinks, dessert + FREE lechon</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
                     <span>Luxury church & venue styling with chandelier</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
                     <span>Wedding + prenup photography (USB)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
                     <span>3-tier cake, sound system, lively host</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
                     <span>HMUA for bride, groom, entourage, and family</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
                     <span>FREE venue with hotel room & bridal car</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="bg-accent/30 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2">🎁 Choose 1 Premium Freebie:</h4>
-                <ul className="text-sm space-y-1">
+              <div className="bg-accent/30 p-3 sm:p-4 rounded-lg">
+                <h4 className="font-semibold mb-2 text-sm sm:text-base">🎁 Choose 1 Premium Freebie:</h4>
+                <ul className="text-xs sm:text-sm space-y-1">
                   <li>A) LED Wall + SDE video at reception</li>
                   <li>B) Wedding attire rental + fresh bouquets</li>
                 </ul>
               </div>
-
-              <Button size="lg" className="w-full mt-4">Book Now</Button>
             </div>
           </div>
         </DialogContent>
@@ -150,238 +148,239 @@ const PlatinumPackage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background page-transition">
       <Navigation />
       
       {/* Package Navigation */}
       <div className="sticky top-16 z-40 bg-background/95 backdrop-blur border-b">
-        <div className="container mx-auto px-4">
-          <nav className="flex justify-center gap-2 py-4">
+        <div className="container mx-auto px-2 sm:px-4">
+          <nav className="flex justify-center gap-1.5 sm:gap-2 py-3 sm:py-4 overflow-x-auto scrollbar-hide">
             {packages.map((pkg) => (
               <Link
                 key={pkg.path}
                 to={pkg.path}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                   location.pathname === pkg.path
                     ? "bg-primary text-primary-foreground"
                     : "bg-accent hover:bg-accent/80"
                 }`}
               >
-                {pkg.name}
+                <span className="hidden sm:inline">{pkg.name}</span>
+                <span className="sm:hidden">{pkg.name.replace(' Package', '')}</span>
               </Link>
             ))}
           </nav>
         </div>
       </div>
       
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-12">
         <div className="max-w-4xl mx-auto">
           {/* Package Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2">💎 Platinum Package</h1>
-            <p className="text-xl text-muted-foreground">All-in GOLD Wedding</p>
-            <p className="text-sm text-muted-foreground mt-2">Promo Code: #100D</p>
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">💎 Platinum Package</h1>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground">All-in GOLD Wedding</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-2">Promo Code: #100D</p>
           </div>
 
           {/* Package Details Card */}
-          <Card className="mb-12">
-            <CardHeader>
-              <CardTitle className="text-3xl">₱199,000</CardTitle>
-              <CardDescription>Luxury All-in Wedding Experience</CardDescription>
-              <p className="text-sm mt-2">A premium package designed for a grand, stress-free wedding — complete with styling, catering, photography, venue, and more.</p>
+          <Card className="mb-8 sm:mb-12">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-2xl sm:text-3xl">₱199,000</CardTitle>
+              <CardDescription className="text-sm sm:text-base">Luxury All-in Wedding Experience</CardDescription>
+              <p className="text-xs sm:text-sm mt-2">A premium package designed for a grand, stress-free wedding — complete with styling, catering, photography, venue, and more.</p>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
               {/* Catering Setup */}
               <div>
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                   🍽️ Catering & Setup
                 </h3>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>3 main courses, rice, cold soft drinks, dessert</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">3 main courses, rice, cold soft drinks, dessert</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Elegant table setup with utensils, tables, chairs, and centerpieces</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Elegant table setup with utensils, tables, chairs, and centerpieces</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>FREE 1 whole small lechon (approx. 18kg)</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">FREE 1 whole small lechon (approx. 18kg)</span>
                   </li>
                 </ul>
               </div>
 
               {/* Luxury Décor */}
               <div>
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                   🎀 Luxury Décor & Styling
                 </h3>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Church & venue styling: backdrop, ceiling works, chandelier, red carpet, flower stands, entrance arch</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Church & venue styling: backdrop, ceiling works, chandelier, red carpet, flower stands, entrance arch</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Artificial elegant flowers with accents of fresh flowers</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Artificial elegant flowers with accents of fresh flowers</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Royal centerpieces and entrance tunnel</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Royal centerpieces and entrance tunnel</span>
                   </li>
                 </ul>
               </div>
 
               {/* Church Weddings */}
               <div>
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                   ✝️ For Church Weddings:
                 </h3>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Basic church décor (10 fresh flower stands, 2 altar flower arrangements)</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Basic church décor (10 fresh flower stands, 2 altar flower arrangements)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Free offertory items: fruits, candles, and wine</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Free offertory items: fruits, candles, and wine</span>
                   </li>
                 </ul>
               </div>
 
               {/* Photography */}
               <div>
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                   📸 Photography & Media
                 </h3>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Free wedding day photography + prenup photo session (saved on USB)</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Free wedding day photography + prenup photo session (saved on USB)</span>
                   </li>
                 </ul>
               </div>
 
               {/* Reception */}
               <div>
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                   🍰 Reception & Entertainment
                 </h3>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Couple's couch at reception</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Couple's couch at reception</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Basic sound system</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Basic sound system</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Lively host with program flow</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Lively host with program flow</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>3-tier wedding cake with wine in an elegant setup corner</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">3-tier wedding cake with wine in an elegant setup corner</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Fruit buffet corner & pica-pica corner</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Fruit buffet corner & pica-pica corner</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>High-end stage lighting effects</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">High-end stage lighting effects</span>
                   </li>
                 </ul>
               </div>
 
               {/* HMUA */}
               <div>
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                   💇‍♀️ HMUA Services
                 </h3>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>Bride & groom (prenup + wedding)</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">Bride & groom (prenup + wedding)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>3 bridesmaids</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">3 bridesmaids</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>1 maid of honor</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">1 maid of honor</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>2 mothers</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">2 mothers</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>3 flower girls</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">3 flower girls</span>
                   </li>
                 </ul>
               </div>
 
               {/* VIP Extras */}
               <div>
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                   🏨 VIP Extras
                 </h3>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>FREE reception venue with hotel room for couple (8 AM – 5 PM prep)</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">FREE reception venue with hotel room for couple (8 AM – 5 PM prep)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>FREE 50 invitations and 50 giveaways</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">FREE 50 invitations and 50 giveaways</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>FREE bridal car with fresh flower bouquet (if church wedding)</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">FREE bridal car with fresh flower bouquet (if church wedding)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>FREE prenup transportation within Negros Oriental (half day)</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">FREE prenup transportation within Negros Oriental (half day)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-primary mt-0.5" />
-                    <span>On-the-day assistance and coordination</span>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 shrink-0" />
+                    <span className="text-sm sm:text-base">On-the-day assistance and coordination</span>
                   </li>
                 </ul>
               </div>
 
               {/* Premium Freebie */}
-              <div className="bg-accent/50 p-4 rounded-lg">
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+              <div className="bg-accent/50 p-3 sm:p-4 rounded-lg">
+                <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                   🎁 Choose 1 Premium Freebie:
                 </h3>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
-                    <span className="font-semibold">A)</span>
-                    <span>LED Wall + SDE video at reception (final on wedding day)</span>
+                    <span className="font-semibold text-sm sm:text-base">A)</span>
+                    <span className="text-sm sm:text-base">LED Wall + SDE video at reception (final on wedding day)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="font-semibold">B)</span>
-                    <span>Wedding attire rental package (2nd user, basic set) + fresh bouquets & corsages</span>
+                    <span className="font-semibold text-sm sm:text-base">B)</span>
+                    <span className="text-sm sm:text-base">Wedding attire rental package (2nd user, basic set) + fresh bouquets & corsages</span>
                   </li>
                 </ul>
               </div>
 
               {/* Action Button */}
-              <div className="pt-4">
-                <Button size="lg" className="w-full">Book Platinum Package</Button>
+              <div className="pt-2 sm:pt-4">
+                <Button size="lg" className="w-full text-sm sm:text-base h-10 sm:h-11">Book Platinum Package</Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Gallery Section */}
-          <div className="mb-12">
-            <h2 className="text-4xl font-bold mb-12 text-center font-heading">Platinum Package Gallery</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-12 text-center font-heading">Platinum Package Gallery</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <PackageGalleryCard key={i} packageNumber={i} />
               ))}

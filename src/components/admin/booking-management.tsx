@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "@/integrations/supabase/client"
+import { toast } from "sonner"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -17,97 +19,107 @@ import {
 import { Label } from "@/components/ui/label"
 import { Search, Eye, Edit, Trash2, Calendar, MapPin, Phone, Mail, User } from "lucide-react"
 
-const bookings = [
-  {
-    id: "BK001",
-    client: {
-      name: "Maria Santos",
-      email: "maria.santos@email.com",
-      phone: "+63 912 345 6789",
-    },
-    event: {
-      type: "Wedding Reception",
-      date: "2024-07-15",
-      time: "6:00 PM",
-      venue: "Garden Paradise Resort, Dumaguete",
-      guests: 150,
-    },
-    services: ["Catering", "Styling & Decoration", "Photography", "Sound System"],
-    package: "Wedding Essentials",
-    amount: 85000,
-    status: "confirmed",
-    createdAt: "2024-06-01",
-    notes: "Client prefers teal and white color scheme. Vegetarian options needed for 20 guests.",
-  },
-  {
-    id: "BK002",
-    client: {
-      name: "ABC Corporation",
-      email: "events@abccorp.com",
-      phone: "+63 917 888 9999",
-    },
-    event: {
-      type: "Annual Meeting",
-      date: "2024-07-20",
-      time: "9:00 AM",
-      venue: "Dumaguete Convention Center",
-      guests: 200,
-    },
-    services: ["Catering", "Sound System", "LED Wall"],
-    package: "Corporate Classic",
-    amount: 45000,
-    status: "pending",
-    createdAt: "2024-06-05",
-    notes: "Need projector setup and microphones for presentations.",
-  },
-  {
-    id: "BK003",
-    client: {
-      name: "John Dela Cruz",
-      email: "john.delacruz@email.com",
-      phone: "+63 905 123 4567",
-    },
-    event: {
-      type: "Birthday Party",
-      date: "2024-07-25",
-      time: "3:00 PM",
-      venue: "Private Residence, Valencia",
-      guests: 50,
-    },
-    services: ["Catering", "Styling & Decoration", "Photography"],
-    package: "Birthday Bliss",
-    amount: 25000,
-    status: "confirmed",
-    createdAt: "2024-06-10",
-    notes: "Superhero theme for 8-year-old birthday celebration.",
-  },
-  {
-    id: "BK004",
-    client: {
-      name: "Sarah Johnson",
-      email: "sarah.johnson@email.com",
-      phone: "+63 920 555 7777",
-    },
-    event: {
-      type: "Debut Party",
-      date: "2024-08-01",
-      time: "7:00 PM",
-      venue: "Bethel Guest House, Dumaguete",
-      guests: 100,
-    },
-    services: ["Catering", "Styling & Decoration", "Photography", "Sound System"],
-    package: "Custom Package",
-    amount: 55000,
-    status: "inquiry",
-    createdAt: "2024-06-15",
-    notes: "Initial inquiry. Client wants elegant gold and white theme.",
-  },
-]
+interface Booking {
+  id: string
+  reference_id: string
+  client: {
+    name: string
+    email: string
+    phone: string
+  }
+  event: {
+    type: string
+    date: string
+    time: string
+    venue: string
+    guests: number
+    guestRange?: string
+  }
+  budget: number
+  budgetRange?: string
+  status: string
+  createdAt: string
+}
 
 export function BookingManagement() {
-  const [selectedBooking, setSelectedBooking] = useState(null)
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+
+  useEffect(() => {
+    fetchBookings()
+  }, [])
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true)
+      
+      // Fetch all events
+      const { data: events, error: eventsError } = await supabase
+        .from('events')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (eventsError) throw eventsError
+
+      if (!events || events.length === 0) {
+        setBookings([])
+        return
+      }
+
+      // Get unique user IDs
+      const userIds = [...new Set(events.map((event: any) => event.user_id))]
+
+      // Fetch profiles for these users
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, phone_number, email')
+        .in('user_id', userIds)
+
+      if (profilesError) throw profilesError
+
+      // Create a map of user profiles for quick lookup
+      const profileMap = new Map(
+        (profiles || []).map((profile: any) => [profile.user_id, profile])
+      )
+
+      // Transform the data to match the UI structure
+      const transformedBookings: Booking[] = events.map((event: any) => {
+        const profile = profileMap.get(event.user_id)
+        
+        return {
+          id: event.id,
+          reference_id: event.reference_id,
+          client: {
+            name: profile?.full_name || profile?.email || 'Unknown User',
+            email: profile?.email || 'N/A',
+            phone: profile?.phone_number || 'N/A',
+          },
+          event: {
+            type: event.event_type || 'Event',
+            date: event.event_date || 'Date not set',
+            time: event.event_time || 'Time not set',
+            venue: event.venue_location || 'Venue not set',
+            guests: event.guest_count || 0,
+            guestRange: event.guest_count_range,
+          },
+          budget: event.budget_amount || 0,
+          budgetRange: event.budget_range,
+          status: event.status || 'pending',
+          createdAt: event.created_at,
+        }
+      })
+
+      setBookings(transformedBookings)
+    } catch (error: any) {
+      console.error('Error fetching bookings:', error)
+      toast.error('Failed to load bookings')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredBookings = bookings.filter((booking) => {
     const matchesSearch =
@@ -133,9 +145,29 @@ export function BookingManagement() {
     }
   }
 
-  const updateBookingStatus = (bookingId, newStatus) => {
-    // In a real app, this would update the database
-    console.log(`Updating booking ${bookingId} to ${newStatus}`)
+  const updateBookingStatus = async (bookingId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({ status: newStatus })
+        .eq('id', bookingId)
+
+      if (error) throw error
+
+      toast.success(`Booking status updated to ${newStatus}`)
+      fetchBookings()
+    } catch (error: any) {
+      console.error('Error updating booking status:', error)
+      toast.error('Failed to update booking status')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    )
   }
 
   return (
@@ -143,12 +175,8 @@ export function BookingManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Booking Management</h1>
-          <p className="text-muted-foreground">Manage all event bookings and inquiries</p>
+          <p className="text-muted-foreground">Manage all event bookings ({bookings.length} total)</p>
         </div>
-        <Button>
-          <Calendar className="h-4 w-4 mr-2" />
-          Add Booking
-        </Button>
       </div>
 
       {/* Filters */}
@@ -168,13 +196,14 @@ export function BookingManagement() {
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="inquiry">Inquiry</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
             </Select>
           </div>
         </CardContent>
@@ -208,16 +237,18 @@ export function BookingManagement() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <User className="h-4 w-4 text-muted-foreground" />
-                      <span>{booking.event.guests} guests</span>
+                      <span>{booking.event.guestRange || `${booking.event.guests} guests`}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <span className="text-sm text-muted-foreground">Package:</span>
-                      <span className="text-sm font-medium">{booking.package}</span>
+                      <span className="text-sm text-muted-foreground">Reference:</span>
+                      <span className="text-sm font-medium">{booking.reference_id}</span>
                     </div>
-                    <span className="text-lg font-bold text-primary">₱{booking.amount.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-primary">
+                      {booking.budget > 0 ? `₱${booking.budget.toLocaleString()}` : 'Budget not set'}
+                    </span>
                   </div>
                 </div>
 
@@ -275,44 +306,28 @@ export function BookingManagement() {
                               </div>
                               <div>
                                 <Label className="text-sm text-muted-foreground">Expected Guests</Label>
-                                <p>{selectedBooking.event.guests} people</p>
+                                <p>{selectedBooking.event.guestRange || `${selectedBooking.event.guests} people`}</p>
                               </div>
                             </div>
                           </div>
 
-                          {/* Services & Package */}
+                          {/* Budget */}
                           <div>
-                            <h4 className="font-semibold mb-3">Services & Package</h4>
+                            <h4 className="font-semibold mb-3">Budget Information</h4>
                             <div className="space-y-3">
                               <div>
-                                <Label className="text-sm text-muted-foreground">Package</Label>
-                                <p className="font-medium">{selectedBooking.package}</p>
-                              </div>
-                              <div>
-                                <Label className="text-sm text-muted-foreground">Services Included</Label>
-                                <div className="flex flex-wrap gap-2 mt-1">
-                                  {selectedBooking.services.map((service, index) => (
-                                    <Badge key={index} variant="outline">
-                                      {service}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <Label className="text-sm text-muted-foreground">Total Amount</Label>
+                                <Label className="text-sm text-muted-foreground">Budget Amount</Label>
                                 <p className="text-2xl font-bold text-primary">
-                                  ₱{selectedBooking.amount.toLocaleString()}
+                                  {selectedBooking.budget > 0 
+                                    ? `₱${selectedBooking.budget.toLocaleString()}` 
+                                    : 'Not specified'}
                                 </p>
                               </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Reference ID</Label>
+                                <p className="font-medium">{selectedBooking.reference_id}</p>
+                              </div>
                             </div>
-                          </div>
-
-                          {/* Notes */}
-                          <div>
-                            <h4 className="font-semibold mb-3">Notes</h4>
-                            <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
-                              {selectedBooking.notes}
-                            </p>
                           </div>
 
                           {/* Status Management */}

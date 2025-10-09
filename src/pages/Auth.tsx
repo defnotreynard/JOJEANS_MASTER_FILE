@@ -272,7 +272,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 page-transition">
       <div className="w-full max-w-md">
         <Card className="shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
           <CardHeader className="text-center pb-2">

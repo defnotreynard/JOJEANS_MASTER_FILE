@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import coordinationImg from '@/assets/service-coordination.jpg';
 import stylingImg from '@/assets/service-styling.jpg';
 import cateringImg from '@/assets/service-catering.jpg';
@@ -302,44 +303,63 @@ const Services = () => {
     : services.filter(s => s.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-wedding-cream">
+    <div className="min-h-screen bg-wedding-cream page-transition">
       <Navigation />
       
       {/* Hero Section */}
-      <section className="relative py-6 md:py-7 px-4 bg-gradient-elegant">
+      <section className="relative py-8 md:py-12 px-4 bg-gradient-elegant">
         <div className="container mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold mb-6 text-wedding-charcoal">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-heading font-bold mb-4 md:mb-6 text-wedding-charcoal">
             Our Services
           </h1>
-          <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Comprehensive event services to bring your dream celebration to life. From coordination to execution, we handle every detail with care and professionalism.
+          <p className="text-sm md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed px-2">
+            Comprehensive event services to bring your dream celebration to life.
           </p>
         </div>
       </section>
 
-      {/* Filter Tabs */}
-      <section className="md:sticky md:top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 py-3 md:py-2">
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-            <TabsList className="inline-flex h-auto gap-2 bg-transparent p-0 w-full overflow-x-auto scrollbar-hide md:justify-center md:flex-wrap">
-              {categories.map((category) => (
-                <TabsTrigger
-                  key={category}
-                  value={category}
-                  className="px-3 md:px-4 py-1.5 md:py-1 rounded-full border border-border bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary shadow-sm hover:shadow-md transition-all duration-300 text-xs md:text-sm font-medium whitespace-nowrap flex-shrink-0"
-                >
-                  {category === 'all' ? 'All Services' : category}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+      {/* Filter Section - Sticky */}
+      <section className="sticky top-0 md:top-16 z-40 bg-background/98 backdrop-blur-md border-b border-border shadow-sm">
+        <div className="container mx-auto px-3 md:px-4 py-2 md:py-3">
+          {/* Mobile Dropdown */}
+          <div className="md:hidden">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full h-9 text-sm bg-background">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent className="bg-background z-50">
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category} className="text-sm">
+                    {category === 'all' ? 'All Services' : category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Desktop Tabs */}
+          <div className="hidden md:block">
+            <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+              <TabsList className="inline-flex h-auto gap-2 bg-transparent p-0 w-full justify-center flex-wrap">
+                {categories.map((category) => (
+                  <TabsTrigger
+                    key={category}
+                    value={category}
+                    className="px-4 py-1.5 rounded-full border border-border bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary shadow-sm hover:shadow-md transition-all duration-300 text-sm font-medium"
+                  >
+                    {category === 'all' ? 'All Services' : category}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
       </section>
 
       {/* Services Grid */}
-      <section className="py-6 md:py-10 px-4">
+      <section className="py-4 md:py-10 px-3 md:px-4">
         <div className="container mx-auto">
-          <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredServices.map((service) => {
               const Icon = service.icon;
               return (
@@ -349,7 +369,7 @@ const Services = () => {
                   onClick={() => setSelectedService(service)}
                 >
                   {/* Image Section */}
-                  <div className="relative h-48 md:h-56 overflow-hidden bg-gradient-to-br from-wedding-cream to-wedding-sage">
+                  <div className="relative h-44 md:h-56 overflow-hidden bg-gradient-to-br from-wedding-cream to-wedding-sage">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
                     {service.thumbnail && (
                       <img 
@@ -365,33 +385,33 @@ const Services = () => {
                     )}
                     
                     {/* Category Badge */}
-                    <div className="absolute top-4 left-4 z-20">
-                      <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-xs font-semibold text-wedding-charcoal uppercase tracking-wider">
+                    <div className="absolute top-2 md:top-4 left-2 md:left-4 z-20">
+                      <span className="px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-white/90 backdrop-blur-sm text-[10px] md:text-xs font-semibold text-wedding-charcoal uppercase tracking-wider">
                         {service.category}
                       </span>
                     </div>
                   </div>
 
-                  <CardContent className="p-6">
-                    <div className="mb-3">
-                      <h3 className="font-heading text-xl font-bold mb-1 text-wedding-charcoal group-hover:text-primary transition-colors">
+                  <CardContent className="p-3 md:p-6">
+                    <div className="mb-2 md:mb-3">
+                      <h3 className="font-heading text-base md:text-xl font-bold mb-1 text-wedding-charcoal group-hover:text-primary transition-colors line-clamp-1">
                         {service.businessName}
                       </h3>
                       <p className="text-xs text-muted-foreground font-medium">
                         by {service.vendorName}
                       </p>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
+                    <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4 line-clamp-2 leading-relaxed">
                       {service.description}
                     </p>
                     
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      className="w-full rounded-lg border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all duration-300 group-hover:border-primary"
+                      className="w-full text-xs md:text-sm rounded-lg border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all duration-300 group-hover:border-primary"
                     >
                       View Portfolio
-                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="ml-2 h-3 md:h-4 w-3 md:w-4 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </CardContent>
                 </Card>
@@ -403,95 +423,95 @@ const Services = () => {
 
       {/* Service Detail Modal */}
       <Dialog open={!!selectedService} onOpenChange={(open) => !open && setSelectedService(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
           {selectedService && (
             <>
-              <DialogHeader>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-3 py-1 rounded-full bg-primary/10 text-xs font-semibold text-primary uppercase tracking-wider">
+              <DialogHeader className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-primary/10 text-[10px] md:text-xs font-semibold text-primary uppercase tracking-wider">
                     {selectedService.category}
                   </span>
                 </div>
-                <DialogTitle className="text-3xl font-heading font-bold text-wedding-charcoal mb-1">
+                <DialogTitle className="text-xl md:text-3xl font-heading font-bold text-wedding-charcoal">
                   {selectedService.businessName}
                 </DialogTitle>
-                <p className="text-sm text-muted-foreground font-medium">
+                <p className="text-xs md:text-sm text-muted-foreground font-medium">
                   by {selectedService.vendorName}
                 </p>
               </DialogHeader>
 
               {/* Image Carousel */}
-              <div className="my-6">
+              <div className="my-4 md:my-6">
                 <Carousel className="w-full">
                   <CarouselContent>
                     {selectedService.images.map((image: string, index: number) => (
                       <CarouselItem key={index}>
-                        <div className="relative h-64 md:h-80 rounded-xl overflow-hidden bg-gradient-to-br from-wedding-cream to-wedding-sage">
+                        <div className="relative h-48 md:h-80 rounded-xl overflow-hidden bg-gradient-to-br from-wedding-cream to-wedding-sage">
                           <div className="absolute inset-0 flex items-center justify-center">
                             {React.createElement(selectedService.icon, { 
-                              className: "h-32 w-32 text-white/30" 
+                              className: "h-20 md:h-32 w-20 md:w-32 text-white/30" 
                             })}
                           </div>
                         </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious className="left-4" />
-                  <CarouselNext className="right-4" />
+                  <CarouselPrevious className="left-2 md:left-4 h-8 w-8 md:h-10 md:w-10" />
+                  <CarouselNext className="right-2 md:right-4 h-8 w-8 md:h-10 md:w-10" />
                 </Carousel>
               </div>
 
               {/* Description */}
               <div className="space-y-4">
-                <p className="text-base text-foreground leading-relaxed">
+                <p className="text-sm md:text-base text-foreground leading-relaxed">
                   {selectedService.fullDescription}
                 </p>
 
                 {/* Features List */}
                 <div>
-                  <h4 className="text-lg font-heading font-semibold mb-4 text-wedding-charcoal">
+                  <h4 className="text-base md:text-lg font-heading font-semibold mb-3 md:mb-4 text-wedding-charcoal">
                     What's Included
                   </h4>
-                  <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
                     {selectedService.features.map((feature: string, index: number) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className="mt-1 p-1 rounded-full bg-primary/10">
+                      <div key={index} className="flex items-start gap-2 md:gap-3">
+                        <div className="mt-0.5 md:mt-1 p-1 rounded-full bg-primary/10 flex-shrink-0">
                           <Check className="h-3 w-3 text-primary" />
                         </div>
-                        <span className="text-sm text-foreground">{feature}</span>
+                        <span className="text-xs md:text-sm text-foreground">{feature}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Contact Information */}
-                <div className="bg-gradient-to-br from-wedding-cream/50 to-wedding-sage/20 rounded-xl p-6 border border-border">
-                  <h4 className="text-lg font-heading font-semibold mb-4 text-wedding-charcoal">
+                <div className="bg-gradient-to-br from-wedding-cream/50 to-wedding-sage/20 rounded-xl p-4 md:p-6 border border-border">
+                  <h4 className="text-base md:text-lg font-heading font-semibold mb-3 md:mb-4 text-wedding-charcoal">
                     Contact Information
                   </h4>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <p className="text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                    <div className="space-y-1.5 md:space-y-2">
+                      <p className="text-xs md:text-sm">
                         <span className="font-semibold text-foreground">Phone:</span>{' '}
                         <a href={`tel:${selectedService.contact.phone}`} className="text-primary hover:underline">
                           {selectedService.contact.phone}
                         </a>
                       </p>
-                      <p className="text-sm">
+                      <p className="text-xs md:text-sm">
                         <span className="font-semibold text-foreground">Email:</span>{' '}
-                        <a href={`mailto:${selectedService.contact.email}`} className="text-primary hover:underline">
+                        <a href={`mailto:${selectedService.contact.email}`} className="text-primary hover:underline break-all">
                           {selectedService.contact.email}
                         </a>
                       </p>
                     </div>
-                    <div className="space-y-2">
-                      <p className="text-sm">
+                    <div className="space-y-1.5 md:space-y-2">
+                      <p className="text-xs md:text-sm">
                         <span className="font-semibold text-foreground">Facebook:</span>{' '}
                         <a href={`https://facebook.com/${selectedService.contact.facebook}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                           {selectedService.contact.facebook}
                         </a>
                       </p>
-                      <p className="text-sm">
+                      <p className="text-xs md:text-sm">
                         <span className="font-semibold text-foreground">Instagram:</span>{' '}
                         <a href={`https://instagram.com/${selectedService.contact.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                           {selectedService.contact.instagram}
@@ -502,11 +522,11 @@ const Services = () => {
                 </div>
 
                 {/* CTA Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <Button size="lg" className="flex-1">
+                <div className="flex flex-col sm:flex-row gap-2 md:gap-3 pt-3 md:pt-4">
+                  <Button size="sm" className="flex-1 text-sm md:text-base">
                     Book Now
                   </Button>
-                  <Button size="lg" variant="outline" className="flex-1">
+                  <Button size="sm" variant="outline" className="flex-1 text-sm md:text-base">
                     Inquire
                   </Button>
                 </div>

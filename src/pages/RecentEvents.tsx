@@ -112,7 +112,7 @@ const RecentEvents = () => {
   const eventTypes = [...new Set(allEvents.map(event => event.type))];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background page-transition">
       <Navigation />
       
       <main>

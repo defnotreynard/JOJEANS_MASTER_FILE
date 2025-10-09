@@ -71,7 +71,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-background w-full">
+    <div className="flex h-screen bg-background w-full page-transition">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader />
