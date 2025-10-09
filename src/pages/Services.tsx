@@ -318,15 +318,15 @@ const Services = () => {
       </section>
 
       {/* Filter Tabs */}
-      <section className=" top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 py-2 overflow-x-auto">
+      <section className="md:sticky md:top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
+        <div className="container mx-auto px-4 py-3 md:py-2">
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-            <TabsList className="inline-flex h-auto gap-2 bg-transparent p-0 w-full justify-start md:justify-center flex-wrap">
+            <TabsList className="inline-flex h-auto gap-2 bg-transparent p-0 w-full overflow-x-auto scrollbar-hide md:justify-center md:flex-wrap">
               {categories.map((category) => (
                 <TabsTrigger
                   key={category}
                   value={category}
-                  className="px-4 py-1 rounded-full border border-border bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary shadow-sm hover:shadow-md transition-all duration-300 text-sm font-medium whitespace-nowrap"
+                  className="px-3 md:px-4 py-1.5 md:py-1 rounded-full border border-border bg-background data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary shadow-sm hover:shadow-md transition-all duration-300 text-xs md:text-sm font-medium whitespace-nowrap flex-shrink-0"
                 >
                   {category === 'all' ? 'All Services' : category}
                 </TabsTrigger>
