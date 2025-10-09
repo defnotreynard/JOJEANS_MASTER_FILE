@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserSidebar } from '@/components/UserSidebar';
 import Navigation from '@/components/Navigation';
 import { CreateEventModal } from '@/components/CreateEventModal';
 import { 
@@ -30,7 +29,6 @@ const UserDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [createEventModalOpen, setCreateEventModalOpen] = useState(false);
   const [userEvents, setUserEvents] = useState<any[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
@@ -192,147 +190,145 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-background page-transition">
       <Navigation />
       
-      <div className="flex">
-        <UserSidebar 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab}
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-        
-        <main className="flex-1 overflow-auto">
-        <div className="container mx-auto px-6 py-8">
-          <div className="space-y-8">
+      <main className="w-full">
+        <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8">
+          <div className="space-y-4 sm:space-y-8">
             {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
               <div>
-                <h1 className="text-3xl lg:text-4xl font-heading font-bold text-foreground">
+                <h1 className="text-xl sm:text-2xl lg:text-4xl font-heading font-bold text-foreground">
                   Wedding Dashboard
                 </h1>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
                   Plan, organize, and track your perfect day
                 </p>
               </div>
               
               <Button 
-                className="lg:self-end"
+                size="sm"
+                className="sm:size-default w-full sm:w-auto"
                 onClick={() => setCreateEventModalOpen(true)}
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Event
+                <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="text-xs sm:text-sm">Add Event</span>
               </Button>
             </div>
 
             {/* Tabs Navigation */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-6 lg:w-fit">
-                <TabsTrigger value="home" className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4" />
-                  <span className="hidden sm:inline">Home</span>
+              <TabsList className="grid w-full grid-cols-5 gap-1 h-auto p-1">
+                <TabsTrigger value="home" className="flex flex-col sm:flex-row items-center sm:space-x-2 px-2 py-2 text-xs sm:text-sm">
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Home</span>
                 </TabsTrigger>
-                <TabsTrigger value="checklist" className="flex items-center space-x-2">
-                  <CheckSquare className="h-4 w-4" />
+                <TabsTrigger value="checklist" className="flex flex-col sm:flex-row items-center sm:space-x-2 px-2 py-2 text-xs sm:text-sm">
+                  <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Checklist</span>
+                  <span className="sm:hidden">Tasks</span>
                 </TabsTrigger>
-                <TabsTrigger value="guests" className="flex items-center space-x-2">
-                  <Users className="h-4 w-4" />
-                  <span className="hidden sm:inline">Guests</span>
+                <TabsTrigger value="guests" className="flex flex-col sm:flex-row items-center sm:space-x-2 px-2 py-2 text-xs sm:text-sm">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Guests</span>
                 </TabsTrigger>
-                <TabsTrigger value="budget" className="flex items-center space-x-2">
-                  <Calculator className="h-4 w-4" />
-                  <span className="hidden sm:inline">Budget</span>
+                <TabsTrigger value="budget" className="flex flex-col sm:flex-row items-center sm:space-x-2 px-2 py-2 text-xs sm:text-sm">
+                  <Calculator className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Budget</span>
                 </TabsTrigger>
-                <TabsTrigger value="registry" className="flex items-center space-x-2">
-                  <Gift className="h-4 w-4" />
+                <TabsTrigger value="registry" className="flex flex-col sm:flex-row items-center sm:space-x-2 px-2 py-2 text-xs sm:text-sm">
+                  <Gift className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Registry</span>
+                  <span className="sm:hidden">Gifts</span>
                 </TabsTrigger>
               </TabsList>
 
               {/* Home Tab */}
-              <TabsContent value="home" className="space-y-8">
+              <TabsContent value="home" className="space-y-4 sm:space-y-8">
                 {/* User Events Cards */}
-                <div className="grid gap-6">
+                <div className="grid gap-3 sm:gap-6">
                   {userEvents.length > 0 ? userEvents.map((event) => (
                     <Card 
                       key={event.id} 
-                      className="p-6 hover:shadow-card transition-all cursor-pointer"
+                      className="p-3 sm:p-6 hover:shadow-card transition-all cursor-pointer"
                       onClick={() => setSelectedEvent(event)}
                     >
-                      <div className="grid lg:grid-cols-4 gap-6">
+                      <div className="grid lg:grid-cols-4 gap-3 sm:gap-6">
                         {/* Event Info */}
-                        <div className="lg:col-span-2 space-y-4">
+                        <div className="lg:col-span-2 space-y-3 sm:space-y-4">
                           <div>
-                            <h2 className="text-2xl font-heading font-bold text-foreground">
+                            <h2 className="text-lg sm:text-xl lg:text-2xl font-heading font-bold text-foreground">
                               {event.event_type}
                             </h2>
-                            <div className="flex items-center space-x-4 text-muted-foreground mt-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-muted-foreground mt-2 text-xs sm:text-sm">
                               <div className="flex items-center space-x-1">
-                                <Calendar className="h-4 w-4" />
+                                <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                                 <span>{formatEventDate(event.event_date)}</span>
                               </div>
                               <div className="flex items-center space-x-1">
-                                <MapPin className="h-4 w-4" />
-                                <span>{event.venue_location || 'Location not set'}</span>
+                                <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                                <span className="truncate">{event.venue_location || 'Location not set'}</span>
                               </div>
                             </div>
                             <div className="mt-2">
-                              <Badge variant="secondary">
+                              <Badge variant="secondary" className="text-xs">
                                 Ref: {event.reference_id}
                               </Badge>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div className="bg-primary/10 rounded-lg p-3 text-center">
-                              <div className="text-2xl font-bold text-primary">
+                          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                            <div className="bg-primary/10 rounded-lg p-2 sm:p-3 text-center">
+                              <div className="text-sm sm:text-lg lg:text-2xl font-bold text-primary">
                                 {getGuestDisplay(event.guest_count, event.guest_count_range)}
                               </div>
-                              <div className="text-sm text-muted-foreground">Guests</div>
+                              <div className="text-[10px] sm:text-xs text-muted-foreground">Guests</div>
                             </div>
-                            <div className="bg-wedding-gold/10 rounded-lg p-3 text-center">
-                              <div className="text-2xl font-bold text-wedding-gold">
+                            <div className="bg-wedding-gold/10 rounded-lg p-2 sm:p-3 text-center">
+                              <div className="text-sm sm:text-lg lg:text-2xl font-bold text-wedding-gold break-words">
                                 {getBudgetDisplay(event.budget_amount, event.budget_range)}
                               </div>
-                              <div className="text-sm text-muted-foreground">Budget</div>
+                              <div className="text-[10px] sm:text-xs text-muted-foreground">Budget</div>
                             </div>
-                            <div className="bg-wedding-sage/20 rounded-lg p-3 text-center">
-                              <div className="text-2xl font-bold text-wedding-charcoal">
-                                {event.venue_booked ? 'Booked' : 'Not Booked'}
+                            <div className="bg-wedding-sage/20 rounded-lg p-2 sm:p-3 text-center">
+                              <div className="text-sm sm:text-lg lg:text-2xl font-bold text-wedding-charcoal">
+                                {event.venue_booked ? 'Yes' : 'No'}
                               </div>
-                              <div className="text-sm text-muted-foreground">Venue</div>
+                              <div className="text-[10px] sm:text-xs text-muted-foreground">Venue</div>
                             </div>
                           </div>
                         </div>
 
                         {/* Status Section */}
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                           <div>
-                            <div className="text-sm mb-2">Status</div>
-                            <Badge variant="default">Active</Badge>
+                            <div className="text-xs sm:text-sm mb-2">Status</div>
+                            <Badge variant="default" className="text-xs">Active</Badge>
                           </div>
                           <div>
-                            <div className="text-sm mb-2">Created</div>
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-xs sm:text-sm mb-2">Created</div>
+                            <div className="text-xs sm:text-sm text-muted-foreground">
                               {new Date(event.created_at).toLocaleDateString()}
                             </div>
                           </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           <Button 
-                            className="w-full" 
+                            size="sm"
+                            className="w-full text-xs sm:text-sm" 
                             variant="outline"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedEvent(event);
                             }}
                           >
-                            <Settings className="h-4 w-4 mr-2" />
-                            View Details
+                            <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">View Details</span>
+                            <span className="sm:hidden">View</span>
                           </Button>
                           <Button 
-                            className="w-full" 
+                            size="sm"
+                            className="w-full text-xs sm:text-sm" 
                             variant="outline"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -342,7 +338,8 @@ const UserDashboard = () => {
                             Edit
                           </Button>
                           <Button 
-                            className="w-full" 
+                            size="sm"
+                            className="w-full text-xs sm:text-sm" 
                             variant="destructive"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -355,16 +352,17 @@ const UserDashboard = () => {
                       </div>
                     </Card>
                   )) : (
-                    <Card className="p-8 text-center">
-                      <div className="space-y-4">
-                        <div className="text-4xl">🎉</div>
-                        <h3 className="text-xl font-semibold">No events yet</h3>
-                        <p className="text-muted-foreground">
+                    <Card className="p-6 sm:p-8 text-center">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="text-3xl sm:text-4xl">🎉</div>
+                        <h3 className="text-lg sm:text-xl font-semibold">No events yet</h3>
+                        <p className="text-sm sm:text-base text-muted-foreground">
                           Create your first event to get started with planning!
                         </p>
-                        <Button onClick={() => setCreateEventModalOpen(true)}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Create Your First Event
+                        <Button size="sm" className="text-xs sm:text-sm" onClick={() => setCreateEventModalOpen(true)}>
+                          <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          <span className="hidden sm:inline">Create Your First Event</span>
+                          <span className="sm:hidden">Create Event</span>
                         </Button>
                       </div>
                     </Card>
@@ -466,23 +464,23 @@ const UserDashboard = () => {
                 {/* Next Steps Panel */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl font-heading">Next Steps</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-base sm:text-lg lg:text-xl font-heading">Next Steps</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Complete these steps to make your planning even easier
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid md:grid-cols-3 gap-6">
+                    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                       {nextSteps.map((step, index) => (
-                        <div key={index} className="text-center space-y-4">
-                          <div className={`w-12 h-12 rounded-xl bg-accent flex items-center justify-center mx-auto`}>
-                            <step.icon className={`h-6 w-6 ${step.color}`} />
+                        <div key={index} className="text-center space-y-3 sm:space-y-4">
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accent flex items-center justify-center mx-auto`}>
+                            <step.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${step.color}`} />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-foreground">{step.title}</h3>
-                            <p className="text-sm text-muted-foreground mt-1">{step.description}</p>
+                            <h3 className="font-semibold text-sm sm:text-base text-foreground">{step.title}</h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">{step.description}</p>
                           </div>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" className="text-xs sm:text-sm">
                             {step.action}
                           </Button>
                         </div>
@@ -494,49 +492,50 @@ const UserDashboard = () => {
                 {/* Upcoming Tasks */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl font-heading">Upcoming Tasks</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-base sm:text-lg lg:text-xl font-heading">Upcoming Tasks</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Stay on track with your wedding planning timeline
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {upcomingTasks.map((task) => (
-                        <div key={task.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-2 h-2 bg-primary rounded-full"></div>
-                            <div>
-                              <div className="font-medium">{task.task}</div>
-                              <div className="text-sm text-muted-foreground">
+                        <div key={task.id} className="flex items-center justify-between p-3 sm:p-4 border rounded-lg">
+                          <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                            <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium text-xs sm:text-sm truncate">{task.task}</div>
+                              <div className="text-[10px] sm:text-xs text-muted-foreground">
                                 Due: {new Date(task.dueDate).toLocaleDateString()}
                               </div>
                             </div>
                           </div>
                           <Badge 
+                            className="text-[10px] sm:text-xs flex-shrink-0 ml-2"
                             variant={task.priority === 'high' ? 'destructive' : task.priority === 'medium' ? 'default' : 'secondary'}
                           >
-                            {task.priority} priority
+                            {task.priority}
                           </Badge>
                         </div>
                       ))}
                     </div>
                     
-                    <Button variant="outline" className="w-full mt-4">
+                    <Button variant="outline" size="sm" className="w-full mt-3 sm:mt-4 text-xs sm:text-sm">
                       View All Tasks
                     </Button>
                   </CardContent>
-                </Card>fix
+                </Card>
               </TabsContent>
 
               {/* Other tabs content would go here */}
               <TabsContent value="checklist">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Wedding Checklist</CardTitle>
-                    <CardDescription>Track your wedding planning progress</CardDescription>
+                    <CardTitle className="text-base sm:text-lg lg:text-xl">Wedding Checklist</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Track your wedding planning progress</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-center py-8 text-muted-foreground">
+                    <p className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground">
                       Checklist feature coming soon...
                     </p>
                   </CardContent>
@@ -546,11 +545,11 @@ const UserDashboard = () => {
               <TabsContent value="guests">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Guest Management</CardTitle>
-                    <CardDescription>Manage your wedding guest list and RSVPs</CardDescription>
+                    <CardTitle className="text-base sm:text-lg lg:text-xl">Guest Management</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Manage your wedding guest list and RSVPs</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-center py-8 text-muted-foreground">
+                    <p className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground">
                       Guest management feature coming soon...
                     </p>
                   </CardContent>
@@ -561,11 +560,11 @@ const UserDashboard = () => {
               <TabsContent value="budget">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Budget Tracker</CardTitle>
-                    <CardDescription>Monitor your wedding expenses and payments</CardDescription>
+                    <CardTitle className="text-base sm:text-lg lg:text-xl">Budget Tracker</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Monitor your wedding expenses and payments</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-center py-8 text-muted-foreground">
+                    <p className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground">
                       Budget tracker feature coming soon...
                     </p>
                   </CardContent>
@@ -575,11 +574,11 @@ const UserDashboard = () => {
               <TabsContent value="registry">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Wedding Registry</CardTitle>
-                    <CardDescription>Create and manage your wedding gift registry</CardDescription>
+                    <CardTitle className="text-base sm:text-lg lg:text-xl">Wedding Registry</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Create and manage your wedding gift registry</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-center py-8 text-muted-foreground">
+                    <p className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground">
                       Registry feature coming soon...
                     </p>
                   </CardContent>
@@ -588,80 +587,79 @@ const UserDashboard = () => {
             </Tabs>
           </div>
         </div>
-        </main>
-      </div>
+      </main>
 
-              <CreateEventModal 
-                open={createEventModalOpen} 
-                onOpenChange={handleModalClose}
-                onEventCreated={handleEventCreated}
-                editingEvent={editingEvent}
-              />
+      <CreateEventModal 
+        open={createEventModalOpen} 
+        onOpenChange={handleModalClose}
+        onEventCreated={handleEventCreated}
+        editingEvent={editingEvent}
+      />
 
       {/* Event Details Modal */}
       {selectedEvent && (
         <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="flex items-center space-x-2">
+              <DialogTitle className="flex items-center space-x-2 text-base sm:text-lg">
                 <span>📋</span>
                 <span>Event Details</span>
               </DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Event Type</Label>
-                  <p className="text-lg">{selectedEvent.event_type}</p>
+                  <Label className="text-xs sm:text-sm font-medium">Event Type</Label>
+                  <p className="text-sm sm:text-base lg:text-lg">{selectedEvent.event_type}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Reference ID</Label>
-                  <p className="text-lg font-mono">{selectedEvent.reference_id}</p>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Date</Label>
-                  <p>{formatEventDate(selectedEvent.event_date)}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Time</Label>
-                  <p>{selectedEvent.event_time || 'Time not set'}</p>
+                  <Label className="text-xs sm:text-sm font-medium">Reference ID</Label>
+                  <p className="text-sm sm:text-base lg:text-lg font-mono break-all">{selectedEvent.reference_id}</p>
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Guests</Label>
-                  <p>{getGuestDisplay(selectedEvent.guest_count, selectedEvent.guest_count_range)}</p>
+                  <Label className="text-xs sm:text-sm font-medium">Date</Label>
+                  <p className="text-sm sm:text-base">{formatEventDate(selectedEvent.event_date)}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Budget</Label>
-                  <p>{getBudgetDisplay(selectedEvent.budget_amount, selectedEvent.budget_range)}</p>
+                  <Label className="text-xs sm:text-sm font-medium">Time</Label>
+                  <p className="text-sm sm:text-base">{selectedEvent.event_time || 'Time not set'}</p>
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Venue Status</Label>
-                  <p>{selectedEvent.venue_booked ? 'Venue Booked' : 'Venue Not Booked'}</p>
+                  <Label className="text-xs sm:text-sm font-medium">Guests</Label>
+                  <p className="text-sm sm:text-base">{getGuestDisplay(selectedEvent.guest_count, selectedEvent.guest_count_range)}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Preferred Location</Label>
-                  <p>{selectedEvent.venue_location || 'Not specified'}</p>
+                  <Label className="text-xs sm:text-sm font-medium">Budget</Label>
+                  <p className="text-sm sm:text-base">{getBudgetDisplay(selectedEvent.budget_amount, selectedEvent.budget_range)}</p>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <Label className="text-xs sm:text-sm font-medium">Venue Status</Label>
+                  <p className="text-sm sm:text-base">{selectedEvent.venue_booked ? 'Venue Booked' : 'Venue Not Booked'}</p>
+                </div>
+                <div>
+                  <Label className="text-xs sm:text-sm font-medium">Preferred Location</Label>
+                  <p className="text-sm sm:text-base truncate">{selectedEvent.venue_location || 'Not specified'}</p>
                 </div>
               </div>
 
               <div>
-                <Label className="text-sm font-medium">Created</Label>
-                <p>{new Date(selectedEvent.created_at).toLocaleString()}</p>
+                <Label className="text-xs sm:text-sm font-medium">Created</Label>
+                <p className="text-sm sm:text-base">{new Date(selectedEvent.created_at).toLocaleString()}</p>
               </div>
 
               {selectedEvent.date_flexible && (
-                <div className="p-3 bg-accent/20 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
+                <div className="p-2 sm:p-3 bg-accent/20 rounded-lg">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     📅 This event has flexible date and time
                   </p>
                 </div>
@@ -669,7 +667,7 @@ const UserDashboard = () => {
             </div>
 
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setSelectedEvent(null)}>
+              <Button size="sm" className="text-xs sm:text-sm" variant="outline" onClick={() => setSelectedEvent(null)}>
                 Close
               </Button>
             </div>
