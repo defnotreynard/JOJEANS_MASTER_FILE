@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Search, Eye, Edit, Trash2, Calendar, MapPin, Phone, Mail, User } from "lucide-react"
+import { CreateEventModal } from "@/components/CreateEventModal"
 
 interface Booking {
   id: string
@@ -47,6 +48,8 @@ export function BookingManagement() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingEvent, setEditingEvent] = useState<any>(null)
 
   useEffect(() => {
     fetchBookings()
@@ -366,10 +369,50 @@ export function BookingManagement() {
                     </DialogContent>
                   </Dialog>
 
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={async () => {
+                      // Fetch the full event data
+                      const { data: eventData, error } = await supabase
+                        .from('events')
+                        .select('*')
+                        .eq('id', booking.id)
+                        .single();
+                      
+                      if (error) {
+                        toast.error('Failed to load event data');
+                        return;
+                      }
+                      
+                      setEditingEvent(eventData);
+                      setEditModalOpen(true);
+                    }}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={async () => {
+                      if (confirm('Are you sure you want to delete this booking?')) {
+                        try {
+                          const { error } = await supabase
+                            .from('events')
+                            .delete()
+                            .eq('id', booking.id);
+                          
+                          if (error) throw error;
+                          
+                          toast.success('Booking deleted successfully');
+                          fetchBookings();
+                        } catch (error: any) {
+                          console.error('Error deleting booking:', error);
+                          toast.error('Failed to delete booking');
+                        }
+                      }
+                    }}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -386,6 +429,22 @@ export function BookingManagement() {
           </CardContent>
         </Card>
       )}
+
+      <CreateEventModal
+        open={editModalOpen}
+        onOpenChange={(open) => {
+          setEditModalOpen(open);
+          if (!open) {
+            setEditingEvent(null);
+          }
+        }}
+        editingEvent={editingEvent}
+        onEventCreated={() => {
+          fetchBookings();
+          setEditModalOpen(false);
+          setEditingEvent(null);
+        }}
+      />
     </div>
   )
 }
