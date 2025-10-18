@@ -1,56 +1,62 @@
-import React from 'react';
-import { Calendar, MapPin, Users, ArrowRight, Star } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, MapPin, Users, ArrowRight, Star, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+
+interface GalleryItem {
+  id: string;
+  title: string;
+  couple: string;
+  location: string;
+  category: string;
+  description: string;
+  cover_image: string;
+  package: string | null;
+  services: string[] | null;
+  guest_count: number | null;
+  event_date: string | null;
+}
 
 const RecentEvents = () => {
-  const recentEvents = [
-    {
-      id: 1,
-      title: "Tech Summit 2024 Conference",
-      type: "Corporate Event",
-      date: "March 15, 2024",
-      location: "Grand Convention Center",
-      attendees: 850,
-      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      rating: 4.9,
-      description: "A cutting-edge technology conference bringing together industry leaders and innovators."
-    },
-    {
-      id: 2,
-      title: "Sarah & Michael's Wedding",
-      type: "Wedding",
-      date: "February 28, 2024",
-      location: "Oceanview Resort",
-      attendees: 120,
-      image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      rating: 5.0,
-      description: "An elegant beachside wedding celebration with stunning sunset views."
-    },
-    {
-      id: 3,
-      title: "Annual Charity Gala",
-      type: "Fundraising Event",
-      date: "February 10, 2024",
-      location: "Metropolitan Ballroom",
-      attendees: 300,
-      image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      rating: 4.8,
-      description: "A glamorous evening raising funds for local children's charities."
-    },
-    {
-      id: 4,
-      title: "Product Launch Celebration",
-      type: "Corporate Event",
-      date: "January 25, 2024",
-      location: "Innovation Hub",
-      attendees: 200,
-      image: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      rating: 4.7,
-      description: "An exciting launch event showcasing the latest product innovations."
+  const [recentEvents, setRecentEvents] = useState<GalleryItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchRecentEvents()
+  }, [])
+
+  const fetchRecentEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('gallery')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(4)
+
+      if (error) throw error
+      setRecentEvents(data || [])
+    } catch (error) {
+      console.error('Error fetching recent events:', error)
+    } finally {
+      setLoading(false)
     }
-  ];
+  }
+
+  if (loading) {
+    return (
+      <section className="py-7 bg-gradient-elegant">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="py-7 bg-gradient-elegant">
@@ -73,49 +79,79 @@ const RecentEvents = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-12">
           {recentEvents.map((event) => (
             <Card key={event.id} className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-2">
               <div className="relative overflow-hidden">
                 <div 
                   className="h-48 bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
-                  style={{ backgroundImage: `url(${event.image})` }}
+                  style={{ backgroundImage: `url(${event.cover_image || '/placeholder.svg'})` }}
                 />
                 <div className="absolute top-4 left-4">
-                  <span className="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded-full">
-                    {event.type}
-                  </span>
+                  <Badge className="bg-primary text-primary-foreground">
+                    {event.category}
+                  </Badge>
                 </div>
-                <div className="absolute top-4 right-4">
-                  <div className="bg-background/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center space-x-1">
-                    <Star className="h-3 w-3 text-wedding-gold fill-current" />
-                    <span className="text-xs font-medium">{event.rating}</span>
+                {event.package && (
+                  <div className="absolute top-4 right-4">
+                    <Badge className="bg-background/90 backdrop-blur-sm text-foreground border border-primary/20">
+                      <Package className="h-3 w-3 mr-1" />
+                      {event.package}
+                    </Badge>
                   </div>
-                </div>
+                )}
               </div>
               
-              <CardContent className="p-6">
-                <h3 className="font-heading font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+              <CardContent className="p-4 sm:p-6">
+                <h3 className="font-heading font-semibold text-base sm:text-lg mb-1 sm:mb-2 group-hover:text-primary transition-colors line-clamp-1">
                   {event.title}
                 </h3>
                 
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                  {event.description}
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">
+                  {event.couple}
                 </p>
                 
-                <div className="space-y-2 text-sm text-muted-foreground">
+                {event.description && (
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">
+                    {event.description}
+                  </p>
+                )}
+                
+                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-muted-foreground">
+                  {event.event_date && (
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                      <span className="truncate">{new Date(event.event_date).toLocaleDateString()}</span>
+                    </div>
+                  )}
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4" />
-                    <span>{event.date}</span>
+                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="truncate">{event.location}</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4" />
-                    <span>{event.location}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4" />
-                    <span>{event.attendees} attendees</span>
-                  </div>
+                  {event.guest_count && (
+                    <div className="flex items-center space-x-2">
+                      <Users className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                      <span className="truncate">{event.guest_count} guests</span>
+                    </div>
+                  )}
+                  
+                  {!event.package && event.services && event.services.length > 0 && (
+                    <div className="pt-2 border-t">
+                      <p className="text-xs font-medium mb-1.5">Services:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {event.services.slice(0, 3).map((service, idx) => (
+                          <Badge key={idx} variant="secondary" className="text-xs px-1.5 py-0.5">
+                            {service}
+                          </Badge>
+                        ))}
+                        {event.services.length > 3 && (
+                          <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                            +{event.services.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

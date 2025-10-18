@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "@/integrations/supabase/client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,145 +11,365 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Search, Plus, Eye, Edit, Trash2, Calendar, MapPin, Users, Camera, Star } from "lucide-react"
-
-const events = [
-  {
-    id: "EV001",
-    title: "Santos-Reyes Wedding",
-    type: "Wedding",
-    date: "2024-06-15",
-    venue: "Garden Paradise Resort, Dumaguete",
-    client: "Maria Santos",
-    guests: 150,
-    status: "completed",
-    rating: 5,
-    images: [
-      "/elegant-wedding-reception-with-teal-decorations-an.jpg",
-      "/wedding-ceremony-outdoor-setup.jpg",
-      "/wedding-reception-table-setting.jpg",
-      "/wedding-dance-floor-celebration.jpg",
-    ],
-    services: ["Catering", "Styling & Decoration", "Photography", "Sound System"],
-    highlights: [
-      "Elegant teal and white theme",
-      "Garden ceremony setup",
-      "Live acoustic music",
-      "5-course dinner menu",
-    ],
-    testimonial: "JOJEANS Events made our dream wedding come true! Every detail was perfect.",
-    createdAt: "2024-05-01",
-  },
-  {
-    id: "EV002",
-    title: "ABC Corp Annual Meeting",
-    type: "Corporate",
-    date: "2024-06-20",
-    venue: "Dumaguete Convention Center",
-    client: "ABC Corporation",
-    guests: 200,
-    status: "completed",
-    rating: 4,
-    images: [
-      "/corporate-event-with-led-wall-and-professional-lig.jpg",
-      "/modern-startup-launch-event-with-tech-displays.jpg",
-    ],
-    services: ["Catering", "Sound System", "LED Wall", "Registration Setup"],
-    highlights: [
-      "Professional LED wall setup",
-      "Live streaming capability",
-      "Corporate lunch buffet",
-      "Award ceremony staging",
-    ],
-    testimonial: "Professional service and excellent technical support throughout the event.",
-    createdAt: "2024-05-15",
-  },
-  {
-    id: "EV003",
-    title: "John's 8th Birthday Party",
-    type: "Birthday",
-    date: "2024-06-25",
-    venue: "Private Residence, Valencia",
-    client: "John Dela Cruz",
-    guests: 50,
-    status: "completed",
-    rating: 5,
-    images: ["/colorful-birthday-party-with-teal-decorations-and-.jpg"],
-    services: ["Catering", "Styling & Decoration", "Photography", "Entertainment"],
-    highlights: [
-      "Superhero theme decorations",
-      "Kids-friendly menu",
-      "Magic show entertainment",
-      "Custom birthday cake",
-    ],
-    testimonial: "The kids had an amazing time! Thank you for making John's day special.",
-    createdAt: "2024-06-01",
-  },
-  {
-    id: "EV004",
-    title: "Sarah's Debut Celebration",
-    type: "Debut",
-    date: "2024-07-01",
-    venue: "Bethel Guest House, Dumaguete",
-    client: "Sarah Johnson",
-    guests: 100,
-    status: "upcoming",
-    rating: null,
-    images: ["/elegant-debut-party-with-teal-and-gold-decorations.jpg"],
-    services: ["Catering", "Styling & Decoration", "Photography", "Sound System"],
-    highlights: ["Elegant gold and white theme", "Formal dinner setup", "Photo booth area", "Live band performance"],
-    testimonial: null,
-    createdAt: "2024-06-10",
-  },
-]
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Search, Plus, Eye, Edit, Trash2, Calendar, MapPin, Users, Upload, Move } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
 
 export function EventManagement() {
-  const [selectedEvent, setSelectedEvent] = useState(null)
+  const serviceOptions = [
+    "Event Coordination",
+    "Styling & Decor Design",
+    "Premium Catering",
+    "Photography & Videography",
+    "Audio Visual Production",
+    "Cakes & Appetizers",
+    "Invitations & Favors",
+    "Beauty & Hosting",
+    "Attire & Florals",
+    "Luxury Transportation",
+    "Ceiling Installations",
+    "LED Display Solutions",
+    "Grand Entrance Designs",
+    "Illuminated Dance Floors"
+  ]
+
+  const [events, setEvents] = useState<any[]>([])
+  const [selectedEvent, setSelectedEvent] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [typeFilter, setTypeFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [editingEvent, setEditingEvent] = useState<any>(null)
+  const [newEvent, setNewEvent] = useState({
+    title: "",
+    client: "",
+    venue: "",
+    event_date: "",
+    event_type: "wedding",
+    guests: "",
+    status: "upcoming",
+    description: "",
+    highlights: "",
+    services: [] as string[],
+    package: "",
+  })
+  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [editUploadedImages, setEditUploadedImages] = useState<string[]>([])
+  const [coverImage, setCoverImage] = useState<string>("")
+  const [uploadingCoverImage, setUploadingCoverImage] = useState(false)
+  const [editCoverImage, setEditCoverImage] = useState<string>("")
+
+  useEffect(() => {
+    fetchEvents()
+  }, [])
+
+  const fetchEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("created_at", { ascending: false })
+
+      if (error) throw error
+      setEvents(data || [])
+    } catch (error) {
+      console.error("Error fetching events:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load events",
+        variant: "destructive",
+      })
+    }
+  }
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch =
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.venue.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesType = typeFilter === "all" || event.type.toLowerCase() === typeFilter.toLowerCase()
+      (event.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (event.venue_location || "").toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesType = typeFilter === "all" || event.event_type?.toLowerCase() === typeFilter.toLowerCase()
     const matchesStatus = statusFilter === "all" || event.status === statusFilter
     return matchesSearch && matchesType && matchesStatus
   })
 
-  const getStatusColor = (status) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingImages(true)
+    const imageUrls: string[] = []
+
+    try {
+      for (const file of Array.from(files)) {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Math.random()}.${fileExt}`
+        const filePath = `events/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('event-uploads')
+          .upload(filePath, file)
+
+        if (uploadError) throw uploadError
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('event-uploads')
+          .getPublicUrl(filePath)
+
+        imageUrls.push(publicUrl)
+      }
+
+      setUploadedImages([...uploadedImages, ...imageUrls])
+      toast({
+        title: "Success",
+        description: `${imageUrls.length} images uploaded successfully`,
+      })
+    } catch (error) {
+      console.error("Error uploading images:", error)
+      toast({
+        title: "Error",
+        description: "Failed to upload images",
+        variant: "destructive",
+      })
+    } finally {
+      setUploadingImages(false)
+    }
+  }
+
+  const handleRemoveImage = (index: number) => {
+    setUploadedImages(uploadedImages.filter((_, i) => i !== index))
+  }
+
+  const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingCoverImage(true)
+
+    try {
+      const file = files[0]
+      const fileExt = file.name.split('.').pop()
+      const fileName = `cover-${Math.random()}.${fileExt}`
+      const filePath = `events/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('event-uploads')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('event-uploads')
+        .getPublicUrl(filePath)
+
+      setCoverImage(publicUrl)
+      toast({
+        title: "Success",
+        description: "Cover image uploaded successfully",
+      })
+    } catch (error) {
+      console.error("Error uploading cover image:", error)
+      toast({
+        title: "Error",
+        description: "Failed to upload cover image",
+        variant: "destructive",
+      })
+    } finally {
+      setUploadingCoverImage(false)
+    }
+  }
+
+  const handleCreateEvent = async () => {
+    if (!newEvent.title || !newEvent.client || !newEvent.venue) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      // Store metadata in a JSONB field or separate table if needed
+      const eventMetadata = {
+        client: newEvent.client,
+        description: newEvent.description,
+        highlights: newEvent.highlights,
+        images: uploadedImages,
+        cover_image: coverImage,
+      }
+
+      const { error } = await supabase.from("events").insert({
+        event_type: newEvent.event_type,
+        event_date: newEvent.event_date || null,
+        venue_location: newEvent.venue,
+        guest_count: newEvent.guests ? parseInt(newEvent.guests) : null,
+        status: newEvent.status,
+        reference_id: `EVT-${Date.now()}`,
+        user_id: (await supabase.auth.getUser()).data.user?.id || "",
+        package: newEvent.package || null,
+        services: newEvent.services.length > 0 ? newEvent.services : null
+      })
+
+      if (error) throw error
+
+      await fetchEvents()
+      setNewEvent({
+        title: "",
+        client: "",
+        venue: "",
+        event_date: "",
+        event_type: "wedding",
+        guests: "",
+        status: "upcoming",
+        description: "",
+        highlights: "",
+        services: [],
+        package: "",
+      })
+      setUploadedImages([])
+      setCoverImage("")
+      setIsCreateDialogOpen(false)
+      toast({
+        title: "Success",
+        description: "Event created successfully",
+      })
+    } catch (error) {
+      console.error("Error creating event:", error)
+      toast({
+        title: "Error",
+        description: "Failed to create event",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleMoveToGallery = async (event: any) => {
+    try {
+      // Create gallery item from event data
+      const { error: galleryError } = await supabase.from("gallery").insert({
+        title: `${event.event_type} Event`,
+        category: event.event_type,
+        location: event.venue_location,
+        event_date: event.event_date,
+        guest_count: event.guest_count,
+        status: "published",
+        images: [], // Add images if stored
+        likes: 0,
+        views: 0,
+      })
+
+      if (galleryError) throw galleryError
+
+      // Delete the event from events table
+      const { error: deleteError } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", event.id)
+
+      if (deleteError) throw deleteError
+
+      await fetchEvents()
+      toast({
+        title: "Success",
+        description: "Event moved to gallery successfully",
+      })
+    } catch (error) {
+      console.error("Error moving event to gallery:", error)
+      toast({
+        title: "Error",
+        description: "Failed to move event to gallery",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      const { error } = await supabase.from("events").delete().eq("id", id)
+
+      if (error) throw error
+
+      await fetchEvents()
+      toast({
+        title: "Success",
+        description: "Event deleted successfully",
+      })
+    } catch (error) {
+      console.error("Error deleting event:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete event",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed":
-        return "default"
       case "upcoming":
         return "secondary"
       case "ongoing":
+        return "default"
+      case "completed":
         return "outline"
-      case "cancelled":
-        return "destructive"
       default:
         return "outline"
     }
   }
 
-  const renderStars = (rating) => {
-    if (!rating) return null
-    return (
-      <div className="flex items-center space-x-1">
-        {[...Array(5)].map((_, i) => (
-          <Star key={i} className={`h-4 w-4 ${i < rating ? "text-yellow-400 fill-current" : "text-gray-300"}`} />
-        ))}
-      </div>
-    )
+  const handleEditEvent = async () => {
+    if (!editingEvent) return
+
+    try {
+      const { error } = await supabase
+        .from("events")
+        .update({
+          event_type: editingEvent.event_type,
+          event_date: editingEvent.event_date || null,
+          venue_location: editingEvent.venue_location,
+          guest_count: editingEvent.guest_count ? parseInt(editingEvent.guest_count) : null,
+          status: editingEvent.status,
+          package: editingEvent.package || null,
+          services: editingEvent.services && editingEvent.services.length > 0 ? editingEvent.services : null
+        })
+        .eq("id", editingEvent.id)
+
+      if (error) throw error
+
+      await fetchEvents()
+      setEditingEvent(null)
+      setIsEditDialogOpen(false)
+      toast({
+        title: "Success",
+        description: "Event updated successfully",
+      })
+    } catch (error) {
+      console.error("Error updating event:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update event",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -158,84 +379,385 @@ export function EventManagement() {
           <h1 className="text-3xl font-bold">Event Management</h1>
           <p className="text-muted-foreground">Manage past events and create new ones</p>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Add Event
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>Add New Event</DialogTitle>
               <DialogDescription>Create a new event record for portfolio and reference</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="title">Event Title</Label>
-                  <Input id="title" placeholder="e.g., Santos-Reyes Wedding" />
+            <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="title">Event Title *</Label>
+                    <Input
+                      id="title"
+                      value={newEvent.title}
+                      onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                      placeholder="e.g., Santos-Reyes Wedding"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="type">Event Type *</Label>
+                    <Select value={newEvent.event_type} onValueChange={(value) => setNewEvent({ ...newEvent, event_type: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="wedding">Wedding</SelectItem>
+                        <SelectItem value="corporate">Corporate</SelectItem>
+                        <SelectItem value="birthday">Birthday</SelectItem>
+                        <SelectItem value="debut">Debut</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="client">Client Name *</Label>
+                    <Input
+                      id="client"
+                      value={newEvent.client}
+                      onChange={(e) => setNewEvent({ ...newEvent, client: e.target.value })}
+                      placeholder="Client name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="date">Event Date</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={newEvent.event_date}
+                      onChange={(e) => setNewEvent({ ...newEvent, event_date: e.target.value })}
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <Label htmlFor="type">Event Type</Label>
-                  <Select>
+                  <Label htmlFor="venue">Venue *</Label>
+                  <Input
+                    id="venue"
+                    value={newEvent.venue}
+                    onChange={(e) => setNewEvent({ ...newEvent, venue: e.target.value })}
+                    placeholder="Event venue location"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="guests">Number of Guests</Label>
+                    <Input
+                      id="guests"
+                      type="number"
+                      value={newEvent.guests}
+                      onChange={(e) => setNewEvent({ ...newEvent, guests: e.target.value })}
+                      placeholder="150"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select value={newEvent.status} onValueChange={(value) => setNewEvent({ ...newEvent, status: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="upcoming">Upcoming</SelectItem>
+                        <SelectItem value="ongoing">Ongoing</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="package">Package (Optional)</Label>
+                  <Select
+                    value={newEvent.package}
+                    onValueChange={(value) => setNewEvent({ ...newEvent, package: value === "none" ? "" : value })}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder="Select package" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="wedding">Wedding</SelectItem>
-                      <SelectItem value="corporate">Corporate</SelectItem>
-                      <SelectItem value="birthday">Birthday</SelectItem>
-                      <SelectItem value="debut">Debut</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="Silver">Silver Package</SelectItem>
+                      <SelectItem value="Gold">Gold Package</SelectItem>
+                      <SelectItem value="Platinum">Platinum Package</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+
                 <div>
-                  <Label htmlFor="client">Client Name</Label>
-                  <Input id="client" placeholder="Client name" />
+                  <Label>Services (Optional)</Label>
+                  <div className="border rounded-md p-4 max-h-48 overflow-y-auto space-y-2">
+                    {serviceOptions.map((service) => (
+                      <div key={service} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`service-${service}`}
+                          checked={newEvent.services.includes(service)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewEvent({
+                                ...newEvent,
+                                services: [...newEvent.services, service]
+                              });
+                            } else {
+                              setNewEvent({
+                                ...newEvent,
+                                services: newEvent.services.filter((s) => s !== service)
+                              });
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-gray-300"
+                        />
+                        <label
+                          htmlFor={`service-${service}`}
+                          className="text-sm cursor-pointer"
+                        >
+                          {service}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
                 <div>
-                  <Label htmlFor="date">Event Date</Label>
-                  <Input id="date" type="date" />
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={newEvent.description}
+                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                    placeholder="Event description..."
+                    rows={3}
+                  />
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="venue">Venue</Label>
-                <Input id="venue" placeholder="Event venue location" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+
                 <div>
-                  <Label htmlFor="guests">Number of Guests</Label>
-                  <Input id="guests" type="number" placeholder="150" />
+                  <Label htmlFor="highlights">Event Highlights</Label>
+                  <Textarea
+                    id="highlights"
+                    value={newEvent.highlights}
+                    onChange={(e) => setNewEvent({ ...newEvent, highlights: e.target.value })}
+                    placeholder="Key highlights and features of the event..."
+                    rows={3}
+                  />
                 </div>
+
                 <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="upcoming">Upcoming</SelectItem>
-                      <SelectItem value="ongoing">Ongoing</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Cover Image</Label>
+                  <div className="mt-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverImageUpload}
+                      disabled={uploadingCoverImage}
+                    />
+                    {coverImage && (
+                      <div className="mt-2">
+                        <img src={coverImage} alt="Cover" className="w-full h-40 object-cover rounded-lg" />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCoverImage("")}
+                          className="mt-2"
+                        >
+                          Remove Cover
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Event Images</Label>
+                  <div className="mt-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      disabled={uploadingImages}
+                    />
+                    {uploadedImages.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2 mt-4">
+                        {uploadedImages.map((url, index) => (
+                          <div key={index} className="relative">
+                            <img src={url} alt={`Upload ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleRemoveImage(index)}
+                              className="absolute top-1 right-1"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div>
-                <Label htmlFor="highlights">Event Highlights</Label>
-                <Textarea id="highlights" placeholder="Key highlights and features of the event..." />
+            </ScrollArea>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateEvent}>Create Event</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Event Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Event</DialogTitle>
+              <DialogDescription>Update event details</DialogDescription>
+            </DialogHeader>
+            {editingEvent && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-type">Event Type</Label>
+                    <Select 
+                      value={editingEvent.event_type} 
+                      onValueChange={(value) => setEditingEvent({ ...editingEvent, event_type: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="wedding">Wedding</SelectItem>
+                        <SelectItem value="corporate">Corporate</SelectItem>
+                        <SelectItem value="birthday">Birthday</SelectItem>
+                        <SelectItem value="debut">Debut</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-date">Event Date</Label>
+                    <Input
+                      id="edit-date"
+                      type="date"
+                      value={editingEvent.event_date || ""}
+                      onChange={(e) => setEditingEvent({ ...editingEvent, event_date: e.target.value })}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-venue">Venue</Label>
+                  <Input
+                    id="edit-venue"
+                    value={editingEvent.venue_location || ""}
+                    onChange={(e) => setEditingEvent({ ...editingEvent, venue_location: e.target.value })}
+                    placeholder="Event venue location"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-guests">Number of Guests</Label>
+                    <Input
+                      id="edit-guests"
+                      type="number"
+                      value={editingEvent.guest_count || ""}
+                      onChange={(e) => setEditingEvent({ ...editingEvent, guest_count: e.target.value })}
+                      placeholder="150"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-status">Status</Label>
+                    <Select
+                      value={editingEvent.status}
+                      onValueChange={(value) => setEditingEvent({ ...editingEvent, status: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="upcoming">Upcoming</SelectItem>
+                        <SelectItem value="ongoing">Ongoing</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-package">Package (Optional)</Label>
+                    <Select
+                      value={editingEvent.package || "none"}
+                      onValueChange={(value) => setEditingEvent({ ...editingEvent, package: value === "none" ? "" : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select package" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="Silver">Silver Package</SelectItem>
+                        <SelectItem value="Gold">Gold Package</SelectItem>
+                        <SelectItem value="Platinum">Platinum Package</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Services (Optional)</Label>
+                    <div className="border rounded-md p-4 max-h-48 overflow-y-auto space-y-2">
+                      {serviceOptions.map((service) => (
+                        <div key={service} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`edit-service-${service}`}
+                            checked={(editingEvent.services || []).includes(service)}
+                            onChange={(e) => {
+                              const currentServices = editingEvent.services || [];
+                              if (e.target.checked) {
+                                setEditingEvent({
+                                  ...editingEvent,
+                                  services: [...currentServices, service]
+                                });
+                              } else {
+                                setEditingEvent({
+                                  ...editingEvent,
+                                  services: currentServices.filter((s: string) => s !== service)
+                                });
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-gray-300"
+                          />
+                          <label
+                            htmlFor={`edit-service-${service}`}
+                            className="text-sm cursor-pointer"
+                          >
+                            {service}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => setShowAddDialog(false)}>Create Event</Button>
-              </div>
-            </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleEditEvent}>
+                Update Event
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
@@ -284,12 +806,15 @@ export function EventManagement() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredEvents.map((event) => (
           <Card key={event.id} className="hover:shadow-md transition-shadow">
-            <div className="aspect-video relative overflow-hidden rounded-t-lg">
-              <img
-                src={event.images[0] || "/placeholder.svg"}
-                alt={event.title}
-                className="w-full h-full object-cover"
-              />
+            <div className="aspect-video relative overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
+              {event.venue_location ? (
+                <div className="p-4">
+                  <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-center">{event.venue_location}</p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No image</p>
+              )}
               <div className="absolute top-2 right-2">
                 <Badge variant={getStatusColor(event.status)}>{event.status}</Badge>
               </div>
@@ -297,145 +822,88 @@ export function EventManagement() {
             <CardContent className="pt-4">
               <div className="space-y-3">
                 <div>
-                  <h3 className="font-semibold text-lg">{event.title}</h3>
-                  <p className="text-sm text-muted-foreground">{event.type} Event</p>
+                  <h3 className="font-semibold text-lg">{event.event_type}</h3>
+                  <p className="text-sm text-muted-foreground">Ref: {event.reference_id}</p>
                 </div>
 
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{event.date}</span>
+                    <span>{event.event_date || "No date set"}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="truncate">{event.venue}</span>
+                    <span className="truncate">{event.venue_location || "No venue"}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>{event.guests} guests</span>
+                    <span>{event.guest_count || 0} guests</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Camera className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{event.images.length} photos</span>
+                {event.package && event.package !== "none" && (
+                  <div className="mt-2 pt-2 border-t">
+                    <p className="text-sm font-semibold text-primary">Package: {event.package}</p>
                   </div>
-                  {event.rating && renderStars(event.rating)}
-                </div>
+                )}
+                
+                {event.services && event.services.length > 0 && (
+                  <div className="mt-2 pt-2 border-t">
+                    <p className="text-sm font-semibold mb-1">Services:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {event.services.map((service: string, index: number) => (
+                        <span
+                          key={index}
+                          className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded"
+                        >
+                          {service}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex space-x-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 bg-transparent"
-                        onClick={() => setSelectedEvent(event)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditingEvent(event)
+                      setIsEditDialogOpen(true)
+                    }}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleMoveToGallery(event)}
+                  >
+                    <Move className="h-4 w-4 mr-2" />
+                    Move to Gallery
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>{selectedEvent?.title}</DialogTitle>
-                        <DialogDescription>Complete event details and gallery</DialogDescription>
-                      </DialogHeader>
-
-                      {selectedEvent && (
-                        <div className="space-y-6">
-                          {/* Event Images */}
-                          <div>
-                            <h4 className="font-semibold mb-3">Event Gallery</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                              {selectedEvent.images.map((image, index) => (
-                                <div key={index} className="aspect-video rounded-lg overflow-hidden">
-                                  <img
-                                    src={image || "/placeholder.svg"}
-                                    alt={`${selectedEvent.title} ${index + 1}`}
-                                    className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Event Details */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <h4 className="font-semibold mb-3">Event Information</h4>
-                              <div className="space-y-2">
-                                <div>
-                                  <Label className="text-sm text-muted-foreground">Client</Label>
-                                  <p>{selectedEvent.client}</p>
-                                </div>
-                                <div>
-                                  <Label className="text-sm text-muted-foreground">Date</Label>
-                                  <p>{selectedEvent.date}</p>
-                                </div>
-                                <div>
-                                  <Label className="text-sm text-muted-foreground">Venue</Label>
-                                  <p>{selectedEvent.venue}</p>
-                                </div>
-                                <div>
-                                  <Label className="text-sm text-muted-foreground">Guests</Label>
-                                  <p>{selectedEvent.guests} people</p>
-                                </div>
-                                {selectedEvent.rating && (
-                                  <div>
-                                    <Label className="text-sm text-muted-foreground">Rating</Label>
-                                    <div className="flex items-center space-x-2">
-                                      {renderStars(selectedEvent.rating)}
-                                      <span className="text-sm">({selectedEvent.rating}/5)</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div>
-                              <h4 className="font-semibold mb-3">Services Provided</h4>
-                              <div className="flex flex-wrap gap-2">
-                                {selectedEvent.services.map((service, index) => (
-                                  <Badge key={index} variant="outline">
-                                    {service}
-                                  </Badge>
-                                ))}
-                              </div>
-
-                              <h4 className="font-semibold mb-3 mt-4">Event Highlights</h4>
-                              <ul className="space-y-1">
-                                {selectedEvent.highlights.map((highlight, index) => (
-                                  <li key={index} className="text-sm flex items-start space-x-2">
-                                    <span className="text-primary">•</span>
-                                    <span>{highlight}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-
-                          {/* Testimonial */}
-                          {selectedEvent.testimonial && (
-                            <div>
-                              <h4 className="font-semibold mb-3">Client Testimonial</h4>
-                              <blockquote className="bg-muted p-4 rounded-lg italic">
-                                "{selectedEvent.testimonial}"
-                              </blockquote>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </DialogContent>
-                  </Dialog>
-
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Event</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this event? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteEvent(event.id)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </CardContent>

@@ -12,13 +12,25 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Search, Eye, Edit, Trash2, Calendar, MapPin, Phone, Mail, User } from "lucide-react"
-import { CreateEventModal } from "@/components/CreateEventModal"
 
 interface Booking {
   id: string
@@ -40,16 +52,18 @@ interface Booking {
   budgetRange?: string
   status: string
   createdAt: string
+  package?: string | null
+  services?: string[]
 }
 
 export function BookingManagement() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [editModalOpen, setEditModalOpen] = useState(false)
-  const [editingEvent, setEditingEvent] = useState<any>(null)
 
   useEffect(() => {
     fetchBookings()
@@ -112,6 +126,8 @@ export function BookingManagement() {
           budgetRange: event.budget_range,
           status: event.status || 'pending',
           createdAt: event.created_at,
+          package: event.package || null,
+          services: event.services || []
         }
       })
 
@@ -162,6 +178,59 @@ export function BookingManagement() {
     } catch (error: any) {
       console.error('Error updating booking status:', error)
       toast.error('Failed to update booking status')
+    }
+  }
+
+  const handleEditBooking = (booking: Booking) => {
+    setEditingBooking(booking)
+    setIsEditDialogOpen(true)
+  }
+
+  const handleUpdateBooking = async () => {
+    if (!editingBooking) return
+
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({
+          event_type: editingBooking.event.type,
+          event_date: editingBooking.event.date,
+          event_time: editingBooking.event.time,
+          venue_location: editingBooking.event.venue,
+          guest_count: editingBooking.event.guests,
+          budget_amount: editingBooking.budget,
+          status: editingBooking.status,
+          package: editingBooking.package || null,
+          services: editingBooking.services && editingBooking.services.length > 0 ? editingBooking.services : null
+        })
+        .eq('id', editingBooking.id)
+
+      if (error) throw error
+
+      toast.success('Booking updated successfully')
+      setIsEditDialogOpen(false)
+      setEditingBooking(null)
+      fetchBookings()
+    } catch (error: any) {
+      console.error('Error updating booking:', error)
+      toast.error('Failed to update booking')
+    }
+  }
+
+  const handleDeleteBooking = async (bookingId: string) => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', bookingId)
+
+      if (error) throw error
+
+      toast.success('Booking deleted successfully')
+      fetchBookings()
+    } catch (error: any) {
+      console.error('Error deleting booking:', error)
+      toast.error('Failed to delete booking')
     }
   }
 
@@ -369,52 +438,31 @@ export function BookingManagement() {
                     </DialogContent>
                   </Dialog>
 
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={async () => {
-                      // Fetch the full event data
-                      const { data: eventData, error } = await supabase
-                        .from('events')
-                        .select('*')
-                        .eq('id', booking.id)
-                        .single();
-                      
-                      if (error) {
-                        toast.error('Failed to load event data');
-                        return;
-                      }
-                      
-                      setEditingEvent(eventData);
-                      setEditModalOpen(true);
-                    }}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => handleEditBooking(booking)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={async () => {
-                      if (confirm('Are you sure you want to delete this booking?')) {
-                        try {
-                          const { error } = await supabase
-                            .from('events')
-                            .delete()
-                            .eq('id', booking.id);
-                          
-                          if (error) throw error;
-                          
-                          toast.success('Booking deleted successfully');
-                          fetchBookings();
-                        } catch (error: any) {
-                          console.error('Error deleting booking:', error);
-                          toast.error('Failed to delete booking');
-                        }
-                      }
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Booking</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this booking for {booking.client.name}? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteBooking(booking.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </CardContent>
@@ -430,21 +478,179 @@ export function BookingManagement() {
         </Card>
       )}
 
-      <CreateEventModal
-        open={editModalOpen}
-        onOpenChange={(open) => {
-          setEditModalOpen(open);
-          if (!open) {
-            setEditingEvent(null);
-          }
-        }}
-        editingEvent={editingEvent}
-        onEventCreated={() => {
-          fetchBookings();
-          setEditModalOpen(false);
-          setEditingEvent(null);
-        }}
-      />
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Booking</DialogTitle>
+            <DialogDescription>Update booking information</DialogDescription>
+          </DialogHeader>
+          {editingBooking && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="event-type">Event Type</Label>
+                <Input
+                  id="event-type"
+                  value={editingBooking.event.type}
+                  onChange={(e) => setEditingBooking({
+                    ...editingBooking,
+                    event: { ...editingBooking.event, type: e.target.value }
+                  })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="event-date">Event Date</Label>
+                  <Input
+                    id="event-date"
+                    type="date"
+                    value={editingBooking.event.date}
+                    onChange={(e) => setEditingBooking({
+                      ...editingBooking,
+                      event: { ...editingBooking.event, date: e.target.value }
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="event-time">Event Time</Label>
+                  <Input
+                    id="event-time"
+                    type="time"
+                    value={editingBooking.event.time}
+                    onChange={(e) => setEditingBooking({
+                      ...editingBooking,
+                      event: { ...editingBooking.event, time: e.target.value }
+                    })}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="venue">Venue Location</Label>
+                <Input
+                  id="venue"
+                  value={editingBooking.event.venue}
+                  onChange={(e) => setEditingBooking({
+                    ...editingBooking,
+                    event: { ...editingBooking.event, venue: e.target.value }
+                  })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="guests">Number of Guests</Label>
+                <Input
+                  id="guests"
+                  type="number"
+                  value={editingBooking.event.guests}
+                  onChange={(e) => setEditingBooking({
+                    ...editingBooking,
+                    event: { ...editingBooking.event, guests: parseInt(e.target.value) }
+                  })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="budget">Budget Amount</Label>
+                <Input
+                  id="budget"
+                  type="number"
+                  value={editingBooking.budget}
+                  onChange={(e) => setEditingBooking({
+                    ...editingBooking,
+                    budget: parseFloat(e.target.value)
+                  })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={editingBooking.status}
+                  onValueChange={(value) => setEditingBooking({
+                    ...editingBooking,
+                    status: value
+                  })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="package">Package</Label>
+                <Select
+                  value={editingBooking.package || "none"}
+                  onValueChange={(value) => setEditingBooking({
+                    ...editingBooking,
+                    package: value === "none" ? null : value
+                  })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select package" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="Silver">Silver Package</SelectItem>
+                    <SelectItem value="Gold">Gold Package</SelectItem>
+                    <SelectItem value="Platinum">Platinum Package</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Services</Label>
+                <div className="border rounded-md p-4 max-h-48 overflow-y-auto space-y-2">
+                  {[
+                    "Event Coordination",
+                    "Styling & Decor Design",
+                    "Premium Catering",
+                    "Photography & Videography",
+                    "Audio Visual Production",
+                    "Cakes & Appetizers",
+                    "Invitations & Favors",
+                    "Beauty & Hosting",
+                    "Attire & Florals",
+                    "Luxury Transportation",
+                    "Ceiling Installations",
+                    "LED Display Solutions",
+                    "Grand Entrance Designs",
+                    "Illuminated Dance Floors"
+                  ].map((service) => (
+                    <div key={service} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`edit-${service}`}
+                        checked={editingBooking.services?.includes(service) || false}
+                        onChange={(e) => {
+                          const currentServices = editingBooking.services || []
+                          const newServices = e.target.checked
+                            ? [...currentServices, service]
+                            : currentServices.filter((s) => s !== service)
+                          setEditingBooking({
+                            ...editingBooking,
+                            services: newServices
+                          })
+                        }}
+                        className="rounded"
+                      />
+                      <label htmlFor={`edit-${service}`} className="text-sm cursor-pointer">
+                        {service}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateBooking}>Update Booking</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

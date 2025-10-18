@@ -26,7 +26,9 @@ export type Database = {
           guest_count: number | null
           guest_count_range: string | null
           id: string
+          package: string | null
           reference_id: string
+          services: string[] | null
           status: string | null
           updated_at: string
           user_id: string
@@ -44,7 +46,9 @@ export type Database = {
           guest_count?: number | null
           guest_count_range?: string | null
           id?: string
+          package?: string | null
           reference_id: string
+          services?: string[] | null
           status?: string | null
           updated_at?: string
           user_id: string
@@ -62,12 +66,77 @@ export type Database = {
           guest_count?: number | null
           guest_count_range?: string | null
           id?: string
+          package?: string | null
           reference_id?: string
+          services?: string[] | null
           status?: string | null
           updated_at?: string
           user_id?: string
           venue_booked?: boolean | null
           venue_location?: string | null
+        }
+        Relationships: []
+      }
+      gallery: {
+        Row: {
+          category: string
+          couple: string | null
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          event_date: string | null
+          guest_count: number | null
+          id: string
+          images: string[]
+          likes: number | null
+          location: string | null
+          package: string | null
+          services: string[] | null
+          status: string
+          style: string | null
+          title: string
+          updated_at: string
+          views: number | null
+        }
+        Insert: {
+          category: string
+          couple?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          guest_count?: number | null
+          id?: string
+          images?: string[]
+          likes?: number | null
+          location?: string | null
+          package?: string | null
+          services?: string[] | null
+          status?: string
+          style?: string | null
+          title: string
+          updated_at?: string
+          views?: number | null
+        }
+        Update: {
+          category?: string
+          couple?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          guest_count?: number | null
+          id?: string
+          images?: string[]
+          likes?: number | null
+          location?: string | null
+          package?: string | null
+          services?: string[] | null
+          status?: string
+          style?: string | null
+          title?: string
+          updated_at?: string
+          views?: number | null
         }
         Relationships: []
       }

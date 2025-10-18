@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "@/integrations/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Dialog,
   DialogContent,
@@ -46,106 +48,8 @@ import {
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
-// Mock gallery data
-const mockGalleryItems = [
-  {
-    id: "1",
-    title: "Maria & John's Garden Wedding",
-    category: "wedding",
-    eventDate: "2024-01-15",
-    location: "Dumaguete Garden Resort",
-    guests: 150,
-    images: [
-      {
-        id: "img1",
-        url: "/elegant-wedding-reception-with-teal-decorations-an.jpg",
-        caption: "Reception setup with teal decorations",
-        alt: "Wedding reception with elegant teal decorations",
-        featured: true,
-      },
-      {
-        id: "img2",
-        url: "/wedding-ceremony-outdoor-setup.jpg",
-        caption: "Outdoor ceremony setup",
-        alt: "Beautiful outdoor wedding ceremony setup",
-        featured: false,
-      },
-      {
-        id: "img3",
-        url: "/wedding-reception-table-setting.jpg",
-        caption: "Table setting details",
-        alt: "Elegant wedding table setting",
-        featured: false,
-      },
-      {
-        id: "img4",
-        url: "/wedding-dance-floor-celebration.jpg",
-        caption: "Dance floor celebration",
-        alt: "Wedding guests celebrating on dance floor",
-        featured: false,
-      },
-    ],
-    description: "A romantic garden wedding with teal accents and elegant floral arrangements",
-    tags: ["garden", "teal", "elegant", "outdoor"],
-    status: "published",
-    createdAt: "2024-01-20",
-    updatedAt: "2024-01-20",
-  },
-  {
-    id: "2",
-    title: "Tech Corp Annual Gala",
-    category: "corporate",
-    eventDate: "2024-01-10",
-    location: "Dumaguete Convention Center",
-    guests: 200,
-    images: [
-      {
-        id: "img5",
-        url: "/corporate-event-with-led-wall-and-professional-lig.jpg",
-        caption: "LED wall presentation setup",
-        alt: "Corporate event with LED wall and professional lighting",
-        featured: true,
-      },
-      {
-        id: "img6",
-        url: "/modern-startup-launch-event-with-tech-displays.jpg",
-        caption: "Tech displays and networking area",
-        alt: "Modern startup launch event with tech displays",
-        featured: false,
-      },
-    ],
-    description: "Professional corporate gala with LED wall presentations and premium catering",
-    tags: ["corporate", "professional", "LED", "gala"],
-    status: "published",
-    createdAt: "2024-01-15",
-    updatedAt: "2024-01-15",
-  },
-  {
-    id: "3",
-    title: "Sarah's 25th Birthday Bash",
-    category: "birthday",
-    eventDate: "2024-01-05",
-    location: "Private Residence",
-    guests: 80,
-    images: [
-      {
-        id: "img7",
-        url: "/colorful-birthday-party-with-teal-decorations-and-.jpg",
-        caption: "Colorful birthday party setup",
-        alt: "Vibrant birthday party with teal decorations",
-        featured: true,
-      },
-    ],
-    description: "Vibrant birthday celebration with custom decorations and entertainment",
-    tags: ["birthday", "colorful", "party", "celebration"],
-    status: "draft",
-    createdAt: "2024-01-10",
-    updatedAt: "2024-01-12",
-  },
-]
-
 export function GalleryManagement() {
-  const [galleryItems, setGalleryItems] = useState(mockGalleryItems)
+  const [galleryItems, setGalleryItems] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -156,20 +60,50 @@ export function GalleryManagement() {
   const [editingItem, setEditingItem] = useState<any>(null)
   const [newItem, setNewItem] = useState({
     title: "",
-    category: "wedding",
-    eventDate: "",
+    couple: "",
     location: "",
-    guests: "",
+    style: "Romantic",
     description: "",
-    tags: "",
     status: "draft",
+    category: "wedding",
+    package: "",
+    services: [] as string[],
   })
+  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [editUploadedImages, setEditUploadedImages] = useState<string[]>([])
+  const [coverImage, setCoverImage] = useState<string>("")
+  const [uploadingCoverImage, setUploadingCoverImage] = useState(false)
+  const [editCoverImage, setEditCoverImage] = useState<string>("")
+
+  useEffect(() => {
+    fetchGalleryItems()
+  }, [])
+
+  const fetchGalleryItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("gallery")
+        .select("*")
+        .order("created_at", { ascending: false })
+
+      if (error) throw error
+      setGalleryItems(data || [])
+    } catch (error) {
+      console.error("Error fetching gallery items:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load gallery items",
+        variant: "destructive",
+      })
+    }
+  }
 
   const filteredItems = galleryItems.filter((item) => {
     const matchesSearch =
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.location.toLowerCase().includes(searchTerm.toLowerCase())
+      (item.description || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.location || "").toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesCategory = categoryFilter === "all" || item.category === categoryFilter
     const matchesStatus = statusFilter === "all" || item.status === statusFilter
@@ -177,8 +111,180 @@ export function GalleryManagement() {
     return matchesSearch && matchesCategory && matchesStatus
   })
 
-  const handleCreateItem = () => {
-    if (!newItem.title || !newItem.eventDate || !newItem.location) {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingImages(true)
+    const imageUrls: string[] = []
+
+    try {
+      for (const file of Array.from(files)) {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Math.random()}.${fileExt}`
+        const filePath = `gallery/${fileName}`
+
+        const { error: uploadError, data } = await supabase.storage
+          .from('event-uploads')
+          .upload(filePath, file)
+
+        if (uploadError) throw uploadError
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('event-uploads')
+          .getPublicUrl(filePath)
+
+        imageUrls.push(publicUrl)
+      }
+
+      setUploadedImages([...uploadedImages, ...imageUrls])
+      toast({
+        title: "Success",
+        description: `${imageUrls.length} images uploaded successfully`,
+      })
+    } catch (error) {
+      console.error("Error uploading images:", error)
+      toast({
+        title: "Error",
+        description: "Failed to upload images",
+        variant: "destructive",
+      })
+    } finally {
+      setUploadingImages(false)
+    }
+  }
+
+  const handleRemoveImage = (index: number) => {
+    setUploadedImages(uploadedImages.filter((_, i) => i !== index))
+  }
+
+  const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingCoverImage(true)
+
+    try {
+      const file = files[0]
+      const fileExt = file.name.split('.').pop()
+      const fileName = `cover-${Math.random()}.${fileExt}`
+      const filePath = `gallery/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('event-uploads')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('event-uploads')
+        .getPublicUrl(filePath)
+
+      setCoverImage(publicUrl)
+      toast({
+        title: "Success",
+        description: "Cover image uploaded successfully",
+      })
+    } catch (error) {
+      console.error("Error uploading cover image:", error)
+      toast({
+        title: "Error",
+        description: "Failed to upload cover image",
+        variant: "destructive",
+      })
+    } finally {
+      setUploadingCoverImage(false)
+    }
+  }
+
+  const handleEditImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingImages(true)
+    const imageUrls: string[] = []
+
+    try {
+      for (const file of Array.from(files)) {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Math.random()}.${fileExt}`
+        const filePath = `gallery/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('event-uploads')
+          .upload(filePath, file)
+
+        if (uploadError) throw uploadError
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('event-uploads')
+          .getPublicUrl(filePath)
+
+        imageUrls.push(publicUrl)
+      }
+
+      setEditUploadedImages([...editUploadedImages, ...imageUrls])
+      toast({
+        title: "Success",
+        description: `${imageUrls.length} images uploaded successfully`,
+      })
+    } catch (error) {
+      console.error("Error uploading images:", error)
+      toast({
+        title: "Error",
+        description: "Failed to upload images",
+        variant: "destructive",
+      })
+    } finally {
+      setUploadingImages(false)
+    }
+  }
+
+  const handleRemoveEditImage = (index: number) => {
+    setEditUploadedImages(editUploadedImages.filter((_, i) => i !== index))
+  }
+
+  const handleEditCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingCoverImage(true)
+
+    try {
+      const file = files[0]
+      const fileExt = file.name.split('.').pop()
+      const fileName = `cover-${Math.random()}.${fileExt}`
+      const filePath = `gallery/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('event-uploads')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('event-uploads')
+        .getPublicUrl(filePath)
+
+      setEditCoverImage(publicUrl)
+      toast({
+        title: "Success",
+        description: "Cover image uploaded successfully",
+      })
+    } catch (error) {
+      console.error("Error uploading cover image:", error)
+      toast({
+        title: "Error",
+        description: "Failed to upload cover image",
+        variant: "destructive",
+      })
+    } finally {
+      setUploadingCoverImage(false)
+    }
+  }
+
+  const handleCreateItem = async () => {
+    if (!newItem.title || !newItem.couple || !newItem.location) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -187,45 +293,65 @@ export function GalleryManagement() {
       return
     }
 
-    const item = {
-      id: Date.now().toString(),
-      ...newItem,
-      guests: Number.parseInt(newItem.guests) || 0,
-      tags: newItem.tags.split(",").map((tag) => tag.trim()),
-      images: [],
-      createdAt: new Date().toISOString().split("T")[0],
-      updatedAt: new Date().toISOString().split("T")[0],
-    }
+    try {
+      const { error } = await supabase.from("gallery").insert({
+        title: newItem.title,
+        couple: newItem.couple,
+        location: newItem.location,
+        style: newItem.style,
+        description: newItem.description || null,
+        status: newItem.status,
+        category: newItem.category,
+        package: newItem.package || null,
+        services: newItem.services.length > 0 ? newItem.services : null,
+        images: uploadedImages,
+        cover_image: coverImage || null,
+        likes: 0,
+        views: 0,
+      })
 
-    setGalleryItems([...galleryItems, item])
-    setNewItem({
-      title: "",
-      category: "wedding",
-      eventDate: "",
-      location: "",
-      guests: "",
-      description: "",
-      tags: "",
-      status: "draft",
-    })
-    setIsCreateDialogOpen(false)
-    toast({
-      title: "Success",
-      description: "Gallery item created successfully",
-    })
+      if (error) throw error
+
+      await fetchGalleryItems()
+      setNewItem({
+        title: "",
+        couple: "",
+        location: "",
+        style: "Romantic",
+        description: "",
+        status: "draft",
+        category: "wedding",
+        package: "",
+        services: [],
+      })
+      setUploadedImages([])
+      setCoverImage("")
+      setIsCreateDialogOpen(false)
+      toast({
+        title: "Success",
+        description: "Gallery item created successfully",
+      })
+    } catch (error) {
+      console.error("Error creating gallery item:", error)
+      toast({
+        title: "Error",
+        description: "Failed to create gallery item",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleEditItem = (item: any) => {
     setEditingItem({
       ...item,
-      guests: item.guests.toString(),
-      tags: item.tags.join(", "),
     })
+    setEditUploadedImages(item.images || [])
+    setEditCoverImage(item.cover_image || "")
     setIsEditDialogOpen(true)
   }
 
-  const handleUpdateItem = () => {
-    if (!editingItem.title || !editingItem.eventDate || !editingItem.location) {
+  const handleUpdateItem = async () => {
+    if (!editingItem.title || !editingItem.couple || !editingItem.location) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -234,49 +360,111 @@ export function GalleryManagement() {
       return
     }
 
-    const updatedItem = {
-      ...editingItem,
-      guests: Number.parseInt(editingItem.guests) || 0,
-      tags: editingItem.tags.split(",").map((tag: string) => tag.trim()),
-      updatedAt: new Date().toISOString().split("T")[0],
+    try {
+      const { error } = await supabase
+        .from("gallery")
+        .update({
+          title: editingItem.title,
+          couple: editingItem.couple,
+          location: editingItem.location,
+          style: editingItem.style,
+          description: editingItem.description || null,
+          status: editingItem.status,
+          category: editingItem.category,
+          package: editingItem.package || null,
+          services: editingItem.services && editingItem.services.length > 0 ? editingItem.services : null,
+          images: editUploadedImages,
+          cover_image: editCoverImage || null,
+        })
+        .eq("id", editingItem.id)
+
+      if (error) throw error
+
+      await fetchGalleryItems()
+      setIsEditDialogOpen(false)
+      setEditingItem(null)
+      setEditUploadedImages([])
+      setEditCoverImage("")
+      toast({
+        title: "Success",
+        description: "Gallery item updated successfully",
+      })
+    } catch (error) {
+      console.error("Error updating gallery item:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update gallery item",
+        variant: "destructive",
+      })
     }
-
-    setGalleryItems(galleryItems.map((item) => (item.id === editingItem.id ? updatedItem : item)))
-    setIsEditDialogOpen(false)
-    setEditingItem(null)
-    toast({
-      title: "Success",
-      description: "Gallery item updated successfully",
-    })
   }
 
-  const handleDeleteItem = (id: string) => {
-    setGalleryItems(galleryItems.filter((item) => item.id !== id))
-    toast({
-      title: "Success",
-      description: "Gallery item deleted successfully",
-    })
+  const handleDeleteItem = async (id: string) => {
+    try {
+      const { error } = await supabase.from("gallery").delete().eq("id", id)
+
+      if (error) throw error
+
+      await fetchGalleryItems()
+      toast({
+        title: "Success",
+        description: "Gallery item deleted successfully",
+      })
+    } catch (error) {
+      console.error("Error deleting gallery item:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete gallery item",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleBulkDelete = () => {
-    setGalleryItems(galleryItems.filter((item) => !selectedItems.includes(item.id)))
-    setSelectedItems([])
-    toast({
-      title: "Success",
-      description: `${selectedItems.length} items deleted successfully`,
-    })
+  const handleBulkDelete = async () => {
+    try {
+      const { error } = await supabase.from("gallery").delete().in("id", selectedItems)
+
+      if (error) throw error
+
+      await fetchGalleryItems()
+      setSelectedItems([])
+      toast({
+        title: "Success",
+        description: `${selectedItems.length} items deleted successfully`,
+      })
+    } catch (error) {
+      console.error("Error deleting gallery items:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete gallery items",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleToggleStatus = (id: string) => {
-    setGalleryItems(
-      galleryItems.map((item) =>
-        item.id === id ? { ...item, status: item.status === "published" ? "draft" : "published" } : item,
-      ),
-    )
-    toast({
-      title: "Success",
-      description: "Status updated successfully",
-    })
+  const handleToggleStatus = async (id: string) => {
+    try {
+      const item = galleryItems.find((item) => item.id === id)
+      if (!item) return
+
+      const newStatus = item.status === "published" ? "draft" : "published"
+      const { error } = await supabase.from("gallery").update({ status: newStatus }).eq("id", id)
+
+      if (error) throw error
+
+      await fetchGalleryItems()
+      toast({
+        title: "Success",
+        description: `Gallery item ${newStatus === "published" ? "published" : "unpublished"} successfully`,
+      })
+    } catch (error) {
+      console.error("Error updating status:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleSelectItem = (id: string) => {
@@ -309,24 +497,45 @@ export function GalleryManagement() {
                 Add Gallery Item
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh]">
               <DialogHeader>
                 <DialogTitle>Create New Gallery Item</DialogTitle>
                 <DialogDescription>Add a new event to your gallery portfolio</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
+              <ScrollArea className="max-h-[60vh] pr-4">
+                <div className="space-y-4">
                 <div>
                   <Label htmlFor="title">Event Title *</Label>
                   <Input
                     id="title"
                     value={newItem.title}
                     onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
-                    placeholder="e.g., Maria & John's Garden Wedding"
+                    placeholder="e.g., Romantic Garden Wedding"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="couple">Couple Names *</Label>
+                    <Input
+                      id="couple"
+                      value={newItem.couple}
+                      onChange={(e) => setNewItem({ ...newItem, couple: e.target.value })}
+                      placeholder="e.g., Emma & James"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="location">Location *</Label>
+                    <Input
+                      id="location"
+                      value={newItem.location}
+                      onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
+                      placeholder="e.g., Napa Valley, CA"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="category">Event Category *</Label>
                     <Select
                       value={newItem.category}
                       onValueChange={(value) => setNewItem({ ...newItem, category: value })}
@@ -343,35 +552,81 @@ export function GalleryManagement() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="eventDate">Event Date *</Label>
-                    <Input
-                      id="eventDate"
-                      type="date"
-                      value={newItem.eventDate}
-                      onChange={(e) => setNewItem({ ...newItem, eventDate: e.target.value })}
-                    />
+                    <Label htmlFor="style">Wedding Style</Label>
+                    <Select
+                      value={newItem.style}
+                      onValueChange={(value) => setNewItem({ ...newItem, style: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Romantic">Romantic</SelectItem>
+                        <SelectItem value="Modern">Modern</SelectItem>
+                        <SelectItem value="Boho">Boho</SelectItem>
+                        <SelectItem value="Classic">Classic</SelectItem>
+                        <SelectItem value="Rustic">Rustic</SelectItem>
+                        <SelectItem value="Whimsical">Whimsical</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="location">Location *</Label>
-                    <Input
-                      id="location"
-                      value={newItem.location}
-                      onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-                      placeholder="Event venue"
-                    />
+                <div>
+                  <Label htmlFor="package">Package (Optional)</Label>
+                  <Select
+                    value={newItem.package || "none"}
+                    onValueChange={(value) => setNewItem({ ...newItem, package: value === "none" ? "" : value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a package" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="Silver">Silver Package</SelectItem>
+                      <SelectItem value="Gold">Gold Package</SelectItem>
+                      <SelectItem value="Platinum">Platinum Package</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    If no package selected, services will be shown instead
+                  </p>
+                </div>
+                <div>
+                  <Label>Services Availed (Optional)</Label>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    {[
+                      'Venue Coordination',
+                      'Catering',
+                      'Photography & Videography',
+                      'Sound & Lights',
+                      'Styling & Decor',
+                      'HMUA',
+                      'Invitations',
+                      'Bridal Car',
+                      'Cakes & Desserts',
+                      'Attires',
+                    ].map((service) => (
+                      <div key={service} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`service-${service}`}
+                          checked={newItem.services.includes(service)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setNewItem({ ...newItem, services: [...newItem.services, service] })
+                            } else {
+                              setNewItem({ ...newItem, services: newItem.services.filter(s => s !== service) })
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`service-${service}`} className="text-sm font-normal cursor-pointer">
+                          {service}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <Label htmlFor="guests">Number of Guests</Label>
-                    <Input
-                      id="guests"
-                      type="number"
-                      value={newItem.guests}
-                      onChange={(e) => setNewItem({ ...newItem, guests: e.target.value })}
-                      placeholder="150"
-                    />
-                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    These services will be displayed if no package is selected
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="description">Description</Label>
@@ -383,14 +638,88 @@ export function GalleryManagement() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="tags">Tags (comma-separated)</Label>
+                  <Label htmlFor="cover-image">Cover Image (Front Card Image) *</Label>
                   <Input
-                    id="tags"
-                    value={newItem.tags}
-                    onChange={(e) => setNewItem({ ...newItem, tags: e.target.value })}
-                    placeholder="garden, elegant, outdoor, teal"
+                    id="cover-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverImageUpload}
+                    disabled={uploadingCoverImage}
+                    className="cursor-pointer"
                   />
+                  {uploadingCoverImage && (
+                    <p className="text-sm text-muted-foreground mt-2">Uploading cover image...</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This image will be displayed on the gallery card
+                  </p>
                 </div>
+                
+                {coverImage && (
+                  <div>
+                    <Label>Cover Image Preview</Label>
+                    <div className="relative group mt-2">
+                      <img
+                        src={coverImage}
+                        alt="Cover"
+                        className="w-full h-48 object-cover rounded border"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-8 w-8"
+                        onClick={() => setCoverImage("")}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <Label htmlFor="images">Additional Gallery Images</Label>
+                  <Input
+                    id="images"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImages}
+                    className="cursor-pointer"
+                  />
+                  {uploadingImages && (
+                    <p className="text-sm text-muted-foreground mt-2">Uploading images...</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Upload multiple images for the gallery modal
+                  </p>
+                </div>
+                
+                {uploadedImages.length > 0 && (
+                  <div>
+                    <Label>Uploaded Images ({uploadedImages.length})</Label>
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      {uploadedImages.map((url, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={url}
+                            alt={`Upload ${index + 1}`}
+                            className="w-full h-24 object-cover rounded border"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handleRemoveImage(index)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <Label htmlFor="status">Status</Label>
                   <Select value={newItem.status} onValueChange={(value) => setNewItem({ ...newItem, status: value })}>
@@ -404,6 +733,7 @@ export function GalleryManagement() {
                   </Select>
                 </div>
               </div>
+              </ScrollArea>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Cancel
@@ -511,12 +841,12 @@ export function GalleryManagement() {
                       <Badge variant={item.status === "published" ? "default" : "secondary"}>{item.status}</Badge>
                     </div>
                     <img
-                      src={item.images[0]?.url || "/placeholder.svg"}
-                      alt={item.images[0]?.alt || item.title}
+                      src={item.cover_image || (item.images && item.images.length > 0 ? item.images[0] : "/placeholder.svg")}
+                      alt={item.title}
                       className="w-full h-48 object-cover"
                     />
                     <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                      {item.images.length} photos
+                      {item.images?.length || 0} photos
                     </div>
                   </div>
                   <CardContent className="p-4">
@@ -529,14 +859,18 @@ export function GalleryManagement() {
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
                       <div className="flex items-center text-xs text-muted-foreground space-x-4">
-                        <div className="flex items-center">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {item.eventDate}
-                        </div>
-                        <div className="flex items-center">
-                          <Users className="h-3 w-3 mr-1" />
-                          {item.guests}
-                        </div>
+                        {item.event_date && (
+                          <div className="flex items-center">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {new Date(item.event_date).toLocaleDateString()}
+                          </div>
+                        )}
+                        {item.guest_count && (
+                          <div className="flex items-center">
+                            <Users className="h-3 w-3 mr-1" />
+                            {item.guest_count}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center justify-between pt-2">
                         <div className="flex items-center space-x-1">
@@ -666,25 +1000,47 @@ export function GalleryManagement() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Edit Gallery Item</DialogTitle>
             <DialogDescription>Update gallery item information</DialogDescription>
           </DialogHeader>
           {editingItem && (
-            <div className="space-y-4">
+            <>
+              <ScrollArea className="max-h-[60vh] pr-4">
+                <div className="space-y-4">
               <div>
                 <Label htmlFor="edit-title">Event Title *</Label>
                 <Input
                   id="edit-title"
                   value={editingItem.title}
                   onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-                  placeholder="e.g., Maria & John's Garden Wedding"
+                  placeholder="e.g., Romantic Garden Wedding"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="edit-category">Category</Label>
+                  <Label htmlFor="edit-couple">Couple Names *</Label>
+                  <Input
+                    id="edit-couple"
+                    value={editingItem.couple}
+                    onChange={(e) => setEditingItem({ ...editingItem, couple: e.target.value })}
+                    placeholder="e.g., Emma & James"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-location">Location *</Label>
+                  <Input
+                    id="edit-location"
+                    value={editingItem.location}
+                    onChange={(e) => setEditingItem({ ...editingItem, location: e.target.value })}
+                    placeholder="e.g., Napa Valley, CA"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-category">Event Category *</Label>
                   <Select
                     value={editingItem.category}
                     onValueChange={(value) => setEditingItem({ ...editingItem, category: value })}
@@ -701,35 +1057,82 @@ export function GalleryManagement() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="edit-eventDate">Event Date *</Label>
-                  <Input
-                    id="edit-eventDate"
-                    type="date"
-                    value={editingItem.eventDate}
-                    onChange={(e) => setEditingItem({ ...editingItem, eventDate: e.target.value })}
-                  />
+                  <Label htmlFor="edit-style">Wedding Style</Label>
+                  <Select
+                    value={editingItem.style}
+                    onValueChange={(value) => setEditingItem({ ...editingItem, style: value })}
+                  >
+                    <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Romantic">Romantic</SelectItem>
+                        <SelectItem value="Modern">Modern</SelectItem>
+                        <SelectItem value="Boho">Boho</SelectItem>
+                        <SelectItem value="Classic">Classic</SelectItem>
+                        <SelectItem value="Rustic">Rustic</SelectItem>
+                        <SelectItem value="Whimsical">Whimsical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+              <div>
+                <Label htmlFor="edit-package">Package (Optional)</Label>
+                <Select
+                  value={editingItem.package || "none"}
+                  onValueChange={(value) => setEditingItem({ ...editingItem, package: value === "none" ? "" : value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a package" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="Silver">Silver Package</SelectItem>
+                    <SelectItem value="Gold">Gold Package</SelectItem>
+                    <SelectItem value="Platinum">Platinum Package</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  If no package selected, services will be shown instead
+                </p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-location">Location *</Label>
-                  <Input
-                    id="edit-location"
-                    value={editingItem.location}
-                    onChange={(e) => setEditingItem({ ...editingItem, location: e.target.value })}
-                    placeholder="Event venue"
-                  />
+              <div>
+                <Label>Services Availed (Optional)</Label>
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  {[
+                    'Venue Coordination',
+                    'Catering',
+                    'Photography & Videography',
+                    'Sound & Lights',
+                    'Styling & Decor',
+                    'HMUA',
+                    'Invitations',
+                    'Bridal Car',
+                    'Cakes & Desserts',
+                    'Attires',
+                  ].map((service) => (
+                    <div key={service} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`edit-service-${service}`}
+                        checked={editingItem.services?.includes(service) || false}
+                        onCheckedChange={(checked) => {
+                          const currentServices = editingItem.services || []
+                          if (checked) {
+                            setEditingItem({ ...editingItem, services: [...currentServices, service] })
+                          } else {
+                            setEditingItem({ ...editingItem, services: currentServices.filter(s => s !== service) })
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`edit-service-${service}`} className="text-sm font-normal cursor-pointer">
+                        {service}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <Label htmlFor="edit-guests">Number of Guests</Label>
-                  <Input
-                    id="edit-guests"
-                    type="number"
-                    value={editingItem.guests}
-                    onChange={(e) => setEditingItem({ ...editingItem, guests: e.target.value })}
-                    placeholder="150"
-                  />
-                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  These services will be displayed if no package is selected
+                </p>
               </div>
               <div>
                 <Label htmlFor="edit-description">Description</Label>
@@ -741,14 +1144,88 @@ export function GalleryManagement() {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-tags">Tags (comma-separated)</Label>
+                <Label htmlFor="edit-cover-image">Cover Image (Front Card Image) *</Label>
                 <Input
-                  id="edit-tags"
-                  value={editingItem.tags}
-                  onChange={(e) => setEditingItem({ ...editingItem, tags: e.target.value })}
-                  placeholder="garden, elegant, outdoor, teal"
+                  id="edit-cover-image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleEditCoverImageUpload}
+                  disabled={uploadingCoverImage}
+                  className="cursor-pointer"
                 />
+                {uploadingCoverImage && (
+                  <p className="text-sm text-muted-foreground mt-2">Uploading cover image...</p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  This image will be displayed on the gallery card
+                </p>
               </div>
+              
+              {editCoverImage && (
+                <div>
+                  <Label>Cover Image Preview</Label>
+                  <div className="relative group mt-2">
+                    <img
+                      src={editCoverImage}
+                      alt="Cover"
+                      className="w-full h-48 object-cover rounded border"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8"
+                      onClick={() => setEditCoverImage("")}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <Label htmlFor="edit-images">Additional Gallery Images</Label>
+                <Input
+                  id="edit-images"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleEditImageUpload}
+                  disabled={uploadingImages}
+                  className="cursor-pointer"
+                />
+                {uploadingImages && (
+                  <p className="text-sm text-muted-foreground mt-2">Uploading images...</p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Upload multiple images for the gallery modal
+                </p>
+              </div>
+              
+              {editUploadedImages.length > 0 && (
+                <div>
+                  <Label>Uploaded Images ({editUploadedImages.length})</Label>
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    {editUploadedImages.map((url, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Upload ${index + 1}`}
+                          className="w-full h-24 object-cover rounded border"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => handleRemoveEditImage(index)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="edit-status">Status</Label>
                 <Select
@@ -765,13 +1242,15 @@ export function GalleryManagement() {
                 </Select>
               </div>
             </div>
+            </ScrollArea>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateItem}>Update Gallery Item</Button>
+            </DialogFooter>
+            </>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpdateItem}>Update Gallery Item</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
