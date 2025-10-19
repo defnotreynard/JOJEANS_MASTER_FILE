@@ -146,7 +146,7 @@ export function WebsiteSettings({ onDarkModeChange }: WebsiteSettingsProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">System Settings</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">System Settings</h2>
         <p className="text-muted-foreground">Manage security, appearance, and data backup</p>
       </div>
 
@@ -252,12 +252,12 @@ export function WebsiteSettings({ onDarkModeChange }: WebsiteSettingsProps) {
 
                 <div className="pt-4 border-t">
                   <div className="flex items-start gap-2 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                    <Shield className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm">
-                      <p className="font-medium text-amber-900 dark:text-amber-100">
+                      <p className="font-medium text-foreground">
                         Security Notice
                       </p>
-                      <p className="text-amber-800 dark:text-amber-200 mt-1">
+                      <p className="text-muted-foreground mt-1">
                         Backup files contain sensitive data. Store them securely and do not share
                         publicly.
                       </p>

@@ -442,6 +442,52 @@ export function GalleryManagement() {
     }
   }
 
+  const handleMoveToEvents = async (item: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to move items to events",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Map gallery item data to events table structure
+      const eventData = {
+        user_id: user.id,
+        event_type: item.category || 'wedding',
+        event_date: item.event_date || null,
+        guest_count: item.guest_count || null,
+        venue_location: item.location || null,
+        package: item.package || null,
+        services: item.services || null,
+        status: 'active',
+        reference_id: (await supabase.rpc('generate_event_reference')).data,
+      }
+
+      const { error } = await supabase
+        .from('events')
+        .insert([eventData])
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: `"${item.title}" has been added to events section`,
+      })
+    } catch (error: any) {
+      console.error("Error moving to events:", error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to move item to events",
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleToggleStatus = async (id: string) => {
     try {
       const item = galleryItems.find((item) => item.id === id)
@@ -483,12 +529,12 @@ export function GalleryManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gallery Management</h1>
+          <h1 className="text-3xl font-bold text-foreground">Gallery Management</h1>
           <p className="text-muted-foreground">Manage event photos and portfolio items</p>
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}>
-            {viewMode === "grid" ? <List className="h-4 w-4" /> : <Grid3X3 className="h-4 w-4" />}
+            {viewMode === "grid" ? <List className="h-4 w-4 text-foreground" /> : <Grid3X3 className="h-4 w-4 text-foreground" />}
           </Button>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
@@ -880,7 +926,12 @@ export function GalleryManagement() {
                           <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleMoveToEvents(item)}
+                            title="Move to Events Section"
+                          >
                             <Upload className="h-4 w-4" />
                           </Button>
                         </div>
@@ -963,6 +1014,14 @@ export function GalleryManagement() {
                     </Button>
                     <Button variant="ghost" size="sm">
                       <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleMoveToEvents(item)}
+                      title="Move to Events Section"
+                    >
+                      <Upload className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>

@@ -173,7 +173,7 @@ export function NotificationsDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="relative">
-          <Bell className="h-5 w-5" />
+          <Bell className="h-5 w-5 text-foreground" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -221,16 +221,16 @@ export function NotificationsDropdown() {
                     <span className="text-2xl flex-shrink-0">
                       {getNotificationIcon(notification.type)}
                     </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-medium text-sm">{notification.title}</p>
-                        {!notification.read && (
-                          <Badge variant="secondary" className="h-2 w-2 p-0 rounded-full" />
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {notification.message}
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-medium text-sm text-foreground">{notification.title}</p>
+                          {!notification.read && (
+                            <Badge variant="secondary" className="h-2 w-2 p-0 rounded-full" />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {notification.message}
+                        </p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground">
                           {formatTime(notification.created_at)}

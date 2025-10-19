@@ -201,7 +201,7 @@ export function AdminHeader() {
                       <User className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-medium">{fullName || user?.email || "Admin"}</span>
+                  <span className="font-medium text-foreground">{fullName || user?.email || "Admin"}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-popover">

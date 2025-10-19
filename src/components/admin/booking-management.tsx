@@ -30,7 +30,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Search, Eye, Edit, Trash2, Calendar, MapPin, Phone, Mail, User } from "lucide-react"
+import { Search, Plus, Eye, Edit, Trash2, Calendar, MapPin, Users, Upload, Move, Grid3X3, List, User, Mail, Phone } from "lucide-react"
+import { CreateEventModal } from "@/components/CreateEventModal"
 
 interface Booking {
   id: string
@@ -64,6 +65,8 @@ export function BookingManagement() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [createEventModalOpen, setCreateEventModalOpen] = useState(false)
 
   useEffect(() => {
     fetchBookings()
@@ -246,10 +249,40 @@ export function BookingManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Booking Management</h1>
+          <h1 className="text-3xl font-bold text-foreground">Booking Management</h1>
           <p className="text-muted-foreground">Manage all event bookings ({bookings.length} total)</p>
         </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center border border-border rounded-md bg-background">
+            <Button
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="rounded-r-none"
+            >
+              <Grid3X3 className="h-4 w-4 text-foreground" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="rounded-l-none"
+            >
+              <List className="h-4 w-4 text-foreground" />
+            </Button>
+          </div>
+          <Button onClick={() => setCreateEventModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Booking
+          </Button>
+        </div>
       </div>
+
+      <CreateEventModal 
+        open={createEventModalOpen} 
+        onOpenChange={setCreateEventModalOpen}
+        onEventCreated={fetchBookings}
+      />
 
       {/* Filters */}
       <Card>
@@ -282,8 +315,9 @@ export function BookingManagement() {
       </Card>
 
       {/* Bookings List */}
-      <div className="grid gap-4">
-        {filteredBookings.map((booking) => (
+      {viewMode === "list" ? (
+        <div className="grid gap-4">
+          {filteredBookings.map((booking) => (
           <Card key={booking.id} className="hover:shadow-md transition-shadow">
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
@@ -469,6 +503,155 @@ export function BookingManagement() {
           </Card>
         ))}
       </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredBookings.map((booking) => (
+            <Card key={booking.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6 space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-semibold truncate">{booking.client.name}</h3>
+                    <Badge variant={getStatusColor(booking.status)}>{booking.status}</Badge>
+                  </div>
+                  <span className="text-xs text-muted-foreground">#{booking.id}</span>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="truncate">{booking.event.type}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="truncate">{booking.event.date} at {booking.event.time}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{booking.event.guestRange || `${booking.event.guests} guests`}</span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs text-muted-foreground">Reference:</span>
+                    <span className="text-xs font-medium">{booking.reference_id}</span>
+                  </div>
+                  <p className="text-lg font-bold text-primary">
+                    {booking.budget > 0 ? `₱${booking.budget.toLocaleString()}` : 'Budget not set'}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedBooking(booking)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Booking Details - #{booking.id}</DialogTitle>
+                        <DialogDescription>Complete booking information and management options</DialogDescription>
+                      </DialogHeader>
+
+                      {selectedBooking && (
+                        <div className="space-y-6">
+                          <div>
+                            <h4 className="font-semibold mb-3">Client Information</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="flex items-center space-x-2">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                                <span>{selectedBooking.client.name}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                <span>{selectedBooking.client.email}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Phone className="h-4 w-4 text-muted-foreground" />
+                                <span>{selectedBooking.client.phone}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3">Event Details</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Event Type</Label>
+                                <p>{selectedBooking.event.type}</p>
+                              </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Date & Time</Label>
+                                <p>{selectedBooking.event.date} at {selectedBooking.event.time}</p>
+                              </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Venue</Label>
+                                <p>{selectedBooking.event.venue}</p>
+                              </div>
+                              <div>
+                                <Label className="text-sm text-muted-foreground">Expected Guests</Label>
+                                <p>{selectedBooking.event.guestRange || `${selectedBooking.event.guests} people`}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3">Status Management</h4>
+                            <div className="flex items-center space-x-2">
+                              <Label>Current Status:</Label>
+                              <Badge variant={getStatusColor(selectedBooking.status)}>{selectedBooking.status}</Badge>
+                            </div>
+                            <div className="flex space-x-2 mt-3">
+                              <Button size="sm" variant="outline" onClick={() => updateBookingStatus(selectedBooking.id, "confirmed")}>
+                                Confirm
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => updateBookingStatus(selectedBooking.id, "pending")}>
+                                Set Pending
+                              </Button>
+                              <Button size="sm" variant="destructive" onClick={() => updateBookingStatus(selectedBooking.id, "cancelled")}>
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+
+                  <div className="flex items-center space-x-1">
+                    <Button variant="ghost" size="sm" onClick={() => handleEditBooking(booking)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Booking</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this booking for {booking.client.name}? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteBooking(booking.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {filteredBookings.length === 0 && (
         <Card>

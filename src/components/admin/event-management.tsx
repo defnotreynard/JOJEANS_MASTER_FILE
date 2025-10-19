@@ -30,10 +30,11 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Search, Plus, Eye, Edit, Trash2, Calendar, MapPin, Users, Upload, Move } from "lucide-react"
+import { Search, Plus, Eye, Edit, Trash2, Calendar, MapPin, Users, Upload, Move, Grid3X3, List } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
 export function EventManagement() {
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const serviceOptions = [
     "Event Coordination",
     "Styling & Decor Design",
@@ -376,21 +377,40 @@ export function EventManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Event Management</h1>
+          <h1 className="text-3xl font-bold text-foreground">Event Management</h1>
           <p className="text-muted-foreground">Manage past events and create new ones</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Event
+        <div className="flex items-center gap-2">
+          <div className="flex items-center border border-border rounded-md bg-background">
+            <Button
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="rounded-r-none"
+            >
+              <Grid3X3 className="h-4 w-4 text-foreground" />
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh]">
-            <DialogHeader>
-              <DialogTitle>Add New Event</DialogTitle>
-              <DialogDescription>Create a new event record for portfolio and reference</DialogDescription>
-            </DialogHeader>
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="rounded-l-none"
+            >
+              <List className="h-4 w-4 text-foreground" />
+            </Button>
+          </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Event
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh]">
+              <DialogHeader>
+                <DialogTitle>Add New Event</DialogTitle>
+                <DialogDescription>Create a new event record for portfolio and reference</DialogDescription>
+              </DialogHeader>
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
@@ -616,9 +636,11 @@ export function EventManagement() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      </div>
+    </div>
 
-        {/* Edit Event Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      {/* Edit Event Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Edit Event</DialogTitle>
@@ -760,7 +782,6 @@ export function EventManagement() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
 
       {/* Filters */}
       <Card>
@@ -803,8 +824,9 @@ export function EventManagement() {
       </Card>
 
       {/* Events Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredEvents.map((event) => (
+      {viewMode === "grid" ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredEvents.map((event) => (
           <Card key={event.id} className="hover:shadow-md transition-shadow">
             <div className="aspect-video relative overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
               {event.venue_location ? (
@@ -910,6 +932,105 @@ export function EventManagement() {
           </Card>
         ))}
       </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredEvents.map((event) => (
+            <Card key={event.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <h3 className="text-lg font-semibold">{event.event_type}</h3>
+                        <Badge variant={getStatusColor(event.status)}>{event.status}</Badge>
+                      </div>
+                      <span className="text-sm text-muted-foreground">Ref: {event.reference_id}</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>{event.event_date || "No date set"}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span>{event.venue_location || "No venue"}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span>{event.guest_count || 0} guests</span>
+                      </div>
+                    </div>
+
+                    {event.package && event.package !== "none" && (
+                      <div>
+                        <p className="text-sm font-semibold text-primary">Package: {event.package}</p>
+                      </div>
+                    )}
+                    
+                    {event.services && event.services.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold mb-1">Services:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {event.services.map((service: string, index: number) => (
+                            <span
+                              key={index}
+                              className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded"
+                            >
+                              {service}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingEvent(event)
+                        setIsEditDialogOpen(true)
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleMoveToGallery(event)}
+                    >
+                      <Move className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Event</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this event? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteEvent(event.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {filteredEvents.length === 0 && (
         <Card>

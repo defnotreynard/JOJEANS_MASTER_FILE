@@ -116,7 +116,7 @@ export function AnalyticsDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₱705,000</div>
+            <div className="text-2xl font-bold text-foreground">₱705,000</div>
             <div className="flex items-center space-x-2 text-xs">
               {revenueGrowth >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-primary" />
@@ -136,7 +136,7 @@ export function AnalyticsDashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">204</div>
+            <div className="text-2xl font-bold text-foreground">204</div>
             <div className="flex items-center space-x-2 text-xs">
               {bookingGrowth >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-primary" />
@@ -156,7 +156,7 @@ export function AnalyticsDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">175</div>
+            <div className="text-2xl font-bold text-foreground">175</div>
             <div className="flex items-center space-x-2 text-xs">
               {clientGrowth >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-primary" />
@@ -176,7 +176,7 @@ export function AnalyticsDashboard() {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4.8/5</div>
+            <div className="text-2xl font-bold text-foreground">4.8/5</div>
             <div className="flex items-center space-x-2 text-xs">
               <TrendingUp className="h-3 w-3 text-primary" />
               <span className="text-primary">+0.1 from last month</span>

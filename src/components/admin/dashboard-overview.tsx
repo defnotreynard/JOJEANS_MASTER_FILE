@@ -115,7 +115,7 @@ export function DashboardOverview() {
       {/* Header with Time Range Selector */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard Overview</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard Overview</h1>
           <p className="text-sm text-muted-foreground">Comprehensive business insights and performance metrics</p>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
@@ -141,7 +141,7 @@ export function DashboardOverview() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₱705,000</div>
+            <div className="text-2xl font-bold text-foreground">₱705,000</div>
             <div className="flex items-center space-x-2 text-xs mt-1">
               {revenueGrowth >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-chart-1" />
@@ -163,7 +163,7 @@ export function DashboardOverview() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">204</div>
+            <div className="text-2xl font-bold text-foreground">204</div>
             <div className="flex items-center space-x-2 text-xs mt-1">
               {bookingGrowth >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-chart-2" />
@@ -185,7 +185,7 @@ export function DashboardOverview() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">175</div>
+            <div className="text-2xl font-bold text-foreground">175</div>
             <div className="flex items-center space-x-2 text-xs mt-1">
               {clientGrowth >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-chart-3" />
@@ -207,7 +207,7 @@ export function DashboardOverview() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4.8/5</div>
+            <div className="text-2xl font-bold text-foreground">4.8/5</div>
             <div className="flex items-center space-x-2 text-xs mt-1">
               <TrendingUp className="h-3 w-3 text-chart-4" />
               <span className="text-chart-4">+0.1 from last month</span>
