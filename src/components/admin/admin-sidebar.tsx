@@ -5,7 +5,6 @@ import {
   Calendar,
   Package,
   Images,
-  BarChart3,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -33,11 +32,6 @@ const sidebarItems = [
     title: "Gallery",
     href: "/admin/gallery",
     icon: Images,
-  },
-  {
-    title: "Analytics",
-    href: "/admin/analytics",
-    icon: BarChart3,
   },
   {
     title: "Settings",

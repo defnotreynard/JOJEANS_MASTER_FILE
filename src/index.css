@@ -49,6 +49,13 @@ All colors MUST be HSL. Turquoise (#00bfa6) primary brand with elegant wedding a
     --wedding-cream: 48 15% 97%;      /* warm cream */
     --wedding-charcoal: 0 0% 15%;     /* elegant dark */
 
+    /* Chart colors - vibrant and distinct */
+    --chart-1: 220 90% 56%;    /* Vibrant Blue */
+    --chart-2: 142 76% 36%;    /* Emerald Green */
+    --chart-3: 262 83% 58%;    /* Purple */
+    --chart-4: 346 77% 50%;    /* Rose/Pink */
+    --chart-5: 32 95% 44%;     /* Orange */
+
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
     --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-light)) 100%);
@@ -113,6 +120,13 @@ All colors MUST be HSL. Turquoise (#00bfa6) primary brand with elegant wedding a
     --wedding-sage: 120 13% 25%;
     --wedding-cream: 48 15% 17%;
     --wedding-charcoal: 0 0% 85%;
+
+    /* Chart colors - dark mode */
+    --chart-1: 220 90% 66%;
+    --chart-2: 142 76% 46%;
+    --chart-3: 262 83% 68%;
+    --chart-4: 346 77% 60%;
+    --chart-5: 32 95% 54%;
 
     --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 95.9%;

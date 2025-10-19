@@ -8,13 +8,16 @@ import { DashboardOverview } from "@/components/admin/dashboard-overview";
 import { BookingManagement } from "@/components/admin/booking-management";
 import { EventManagement } from "@/components/admin/event-management";
 import { GalleryManagement } from "@/components/admin/gallery-management";
-import { AnalyticsDashboard } from "@/components/admin/analytics-dashboard";
+import { WebsiteSettings } from "@/components/admin/website-settings";
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [roleLoading, setRoleLoading] = useState(true);
+  const [adminDarkMode, setAdminDarkMode] = useState(() => {
+    return localStorage.getItem("admin-theme") === "dark";
+  });
 
   useEffect(() => {
     if (!loading && !user) {
@@ -71,7 +74,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-background w-full page-transition">
+    <div className={`flex h-screen bg-background w-full page-transition ${adminDarkMode ? 'dark' : ''}`}>
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader />
@@ -81,11 +84,7 @@ export default function AdminDashboard() {
             <Route path="bookings" element={<BookingManagement />} />
             <Route path="events" element={<EventManagement />} />
             <Route path="gallery" element={<GalleryManagement />} />
-            <Route path="analytics" element={<AnalyticsDashboard />} />
-            <Route
-              path="settings"
-              element={<div className="text-2xl font-bold">Settings - Coming Soon</div>}
-            />
+            <Route path="settings" element={<WebsiteSettings onDarkModeChange={setAdminDarkMode} />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Routes>
         </main>

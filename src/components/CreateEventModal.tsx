@@ -100,6 +100,26 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
     dateFlexible: false
   });
 
+  // Populate form when editing an event
+  React.useEffect(() => {
+    if (editingEvent) {
+      setFormData({
+        eventType: editingEvent.event_type || '',
+        customEventType: '',
+        selectedPackage: null,
+        selectedServices: editingEvent.services || [],
+        guestCount: editingEvent.guest_count?.toString() || editingEvent.guest_count_range || '',
+        hasVenue: editingEvent.venue_booked,
+        selectedVenue: null,
+        customVenue: editingEvent.venue_location || '',
+        budgetAmount: editingEvent.budget_amount?.toString() || editingEvent.budget_range || '',
+        eventDate: editingEvent.event_date || '',
+        eventTime: editingEvent.event_time || '',
+        dateFlexible: editingEvent.date_flexible || false
+      });
+    }
+  }, [editingEvent]);
+
   const handleNext = () => {
     setStep(step + 1);
   };
@@ -138,8 +158,6 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
     if (!user) return;
 
     try {
-      const { data: refData } = await supabase.rpc('generate_event_reference');
-      
       const finalEventType = formData.customEventType || formData.eventType;
       
       // Parse guest count from package or form
@@ -176,17 +194,13 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
 
       const finalVenue = formData.customVenue || formData.selectedVenue?.name || '';
       
-      // Determine if venue is booked:
-      // - If hasVenue is true (user already has venue) and they entered a custom venue name
-      // - If hasVenue is false (no venue yet) but they selected one from our list
+      // Determine if venue is booked
       const isVenueBooked = Boolean(
         (formData.hasVenue === true && formData.customVenue) || 
         (formData.hasVenue === false && formData.selectedVenue !== null)
       );
 
       const eventData = {
-        user_id: user.id,
-        reference_id: refData || `EVT-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
         event_type: finalEventType,
         guest_count: guestCount,
         guest_count_range: guestCountRange,
@@ -197,20 +211,46 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
         venue_location: finalVenue,
         budget_amount: budgetAmount,
         budget_range: budgetRange,
-        status: 'pending'
       };
 
-      const { error } = await supabase
-        .from('events')
-        .insert([eventData]);
+      // Update existing event or create new one
+      if (editingEvent) {
+        const { error } = await supabase
+          .from('events')
+          .update(eventData)
+          .eq('id', editingEvent.id);
 
-      if (error) {
-        console.error('Error creating event:', error);
-        alert('Error creating event: ' + error.message);
-        return;
+        if (error) {
+          console.error('Error updating event:', error);
+          alert('Error updating event: ' + error.message);
+          return;
+        }
+
+        alert('Event updated successfully!');
+      } else {
+        // Generate reference ID only for new events
+        const { data: refData } = await supabase.rpc('generate_event_reference');
+        
+        const newEventData = {
+          user_id: user.id,
+          reference_id: refData || `EVT-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
+          status: 'pending',
+          ...eventData
+        };
+
+        const { error } = await supabase
+          .from('events')
+          .insert([newEventData]);
+
+        if (error) {
+          console.error('Error creating event:', error);
+          alert('Error creating event: ' + error.message);
+          return;
+        }
+
+        alert('Event created successfully!');
       }
 
-      alert('Event created successfully!');
       onEventCreated();
       onOpenChange(false);
       setStep(1);
@@ -541,8 +581,9 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
   };
 
   const getStepTitle = () => {
+    const prefix = editingEvent ? "Edit Your Event" : "Let's Create your Event";
     switch (step) {
-      case 1: return "Let's Create your Event 🎉";
+      case 1: return `${prefix} 🎉`;
       case 2: return "Choose Your Package 📦";
       case 3: return formData.selectedPackage ? "Add-on Services (Optional) ✨" : "Select Services 🛠️";
       case 4: return formData.selectedPackage ? "Event Venue 📍" : "Guest Count 👥";
@@ -618,7 +659,7 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
               onClick={handleSubmit}
               className="w-full bg-wedding-charcoal hover:bg-wedding-charcoal/90 text-white"
             >
-              Create Event
+              {editingEvent ? 'Update Event' : 'Create Event'}
             </Button>
           )}
         </div>
