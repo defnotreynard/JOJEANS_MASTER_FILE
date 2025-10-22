@@ -31,6 +31,7 @@ export function NotificationsDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -116,6 +117,7 @@ export function NotificationsDropdown() {
         title: "Success",
         description: "All notifications marked as read",
       });
+      setOpen(false);
     } catch (error) {
       console.error("Error marking all as read:", error);
     }
@@ -136,8 +138,40 @@ export function NotificationsDropdown() {
         title: "Success",
         description: "Notification deleted",
       });
+      setOpen(false);
     } catch (error) {
       console.error("Error deleting notification:", error);
+    }
+  };
+
+  const deleteAllNotifications = async () => {
+    if (!confirm("Are you sure you want to delete all notifications? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("notifications")
+        .delete()
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+
+      setNotifications([]);
+      setUnreadCount(0);
+
+      toast({
+        title: "Success",
+        description: "All notifications deleted",
+      });
+      setOpen(false);
+    } catch (error) {
+      console.error("Error deleting all notifications:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete notifications",
+        variant: "destructive",
+      });
     }
   };
 
@@ -170,7 +204,7 @@ export function NotificationsDropdown() {
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="relative">
           <Bell className="h-5 w-5 text-foreground" />
@@ -181,24 +215,36 @@ export function NotificationsDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[380px]">
-        <div className="flex items-center justify-between px-2 py-2">
-          <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={markAllAsRead}
-              className="h-8 text-xs"
-            >
-              <Check className="h-3 w-3 mr-1" />
-              Mark all read
-            </Button>
-          )}
+      <DropdownMenuContent align="end" className="w-[380px] p-0">
+        <div className="flex items-center justify-between px-3 py-2.5 border-b">
+          <DropdownMenuLabel className="p-0 text-sm">Notifications</DropdownMenuLabel>
+          <div className="flex gap-1">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={markAllAsRead}
+                className="h-7 px-2 text-[10px]"
+              >
+                <Check className="h-3 w-3 mr-0.5" />
+                Mark read
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={deleteAllNotifications}
+                className="h-7 px-2 text-[10px] text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-3 w-3 mr-0.5" />
+                Delete
+              </Button>
+            )}
+          </div>
         </div>
-        <DropdownMenuSeparator />
 
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[350px]">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />

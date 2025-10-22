@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bell } from "lucide-react"
+import { Bell, Check, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
@@ -28,6 +29,7 @@ interface Notification {
 export function UserNotificationsDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const { user } = useAuth()
 
@@ -94,8 +96,51 @@ export function UserNotificationsDropdown() {
     }
   }
 
+  const markAllAsRead = async () => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user?.id)
+        .eq('read', false)
+
+      if (error) throw error
+
+      fetchNotifications()
+      toast.success('All notifications marked as read')
+      setOpen(false)
+    } catch (error: any) {
+      console.error('Error marking all as read:', error)
+      toast.error('Failed to mark all notifications as read')
+    }
+  }
+
+  const deleteAllNotifications = async () => {
+    if (!confirm('Are you sure you want to delete all notifications? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user?.id)
+
+      if (error) throw error
+
+      setNotifications([])
+      setUnreadCount(0)
+      toast.success('All notifications deleted')
+      setOpen(false)
+    } catch (error: any) {
+      console.error('Error deleting all notifications:', error)
+      toast.error('Failed to delete notifications')
+    }
+  }
+
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id)
+    setOpen(false)
     if (notification.link) {
       navigate(notification.link)
     }
@@ -115,7 +160,7 @@ export function UserNotificationsDropdown() {
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5 text-foreground" />
@@ -129,15 +174,42 @@ export function UserNotificationsDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
-        <div className="p-2">
-          <h3 className="font-semibold text-sm mb-2 text-foreground">Notifications</h3>
+      <DropdownMenuContent align="end" className="w-80 p-0">
+        <div className="flex items-center justify-between px-3 py-2.5 border-b">
+          <h3 className="font-semibold text-sm text-foreground">Notifications</h3>
+          <div className="flex gap-1">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={markAllAsRead}
+                className="h-7 px-2 text-[10px]"
+              >
+                <Check className="h-3 w-3 mr-0.5" />
+                Mark read
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={deleteAllNotifications}
+                className="h-7 px-2 text-[10px] text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-3 w-3 mr-0.5" />
+                Delete
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="max-h-[350px] overflow-y-auto">
           {notifications.length === 0 ? (
-            <div className="text-center py-4 text-muted-foreground text-sm">
+            <div className="text-center py-8 text-muted-foreground text-sm">
               No notifications yet
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-1 p-2">
               {notifications.map((notification) => (
                 <DropdownMenuItem
                   key={notification.id}

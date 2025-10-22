@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { CreateEventModal } from '@/components/CreateEventModal';
+import { UserChat } from '@/components/chat/UserChat';
 import { 
   Calendar, 
   Users, 
@@ -693,6 +694,8 @@ const UserDashboard = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      <UserChat />
     </div>
   );
 };

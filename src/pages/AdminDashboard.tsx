@@ -9,6 +9,7 @@ import { BookingManagement } from "@/components/admin/booking-management";
 import { EventManagement } from "@/components/admin/event-management";
 import { GalleryManagement } from "@/components/admin/gallery-management";
 import { WebsiteSettings } from "@/components/admin/website-settings";
+import { AdminChat } from "@/components/chat/AdminChat";
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
@@ -89,6 +90,7 @@ export default function AdminDashboard() {
           </Routes>
         </main>
       </div>
+      <AdminChat />
     </div>
   );
 }

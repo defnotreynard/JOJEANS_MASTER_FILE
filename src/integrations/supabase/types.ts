@@ -140,6 +140,39 @@ export type Database = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          sender_id: string
+          sender_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          sender_id: string
+          sender_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          sender_id?: string
+          sender_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -178,31 +211,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          phone: string | null
           phone_number: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
           phone_number?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
           phone_number?: string | null
           updated_at?: string
           user_id?: string
@@ -262,10 +301,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_event_reference: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_event_reference: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -273,10 +309,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_regular_user: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      is_regular_user: { Args: { _user_id: string }; Returns: boolean }
       notify_admins: {
         Args: {
           _link?: string

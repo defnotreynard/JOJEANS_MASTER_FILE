@@ -8,6 +8,7 @@ import { SuperAdminDashboardOverview } from "@/components/super-admin/super-admi
 import { BookingManagement } from "@/components/admin/booking-management";
 import { EventManagement } from "@/components/admin/event-management";
 import { GalleryManagement } from "@/components/admin/gallery-management";
+import { AdminChat } from "@/components/chat/AdminChat";
 
 export default function SuperAdminDashboard() {
   const { user, loading } = useAuth();
@@ -82,6 +83,7 @@ export default function SuperAdminDashboard() {
           </Routes>
         </main>
       </div>
+      <AdminChat />
     </div>
   );
 }

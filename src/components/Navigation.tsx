@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Heart, ChevronDown, Menu, X, Search, User, LogOut, ArrowRight, Image, Package, MapPin, Sparkles } from 'lucide-react';
+import { Heart, ChevronDown, Menu, X, Search, User, LogOut, ArrowRight, Image, Package, MapPin, Sparkles, Settings, Moon, Sun } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { UserNotificationsDropdown } from '@/components/user/notifications-dropdown';
+import { UserProfileModal } from '@/components/UserProfileModal';
 
 interface SearchResult {
   id: string;
@@ -40,6 +41,8 @@ const Navigation = () => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const { user, signOut } = useAuth();
@@ -75,6 +78,37 @@ const Navigation = () => {
     await signOut();
     navigate('/');
   };
+
+  const toggleDarkMode = () => {
+    const isDashboard = location.pathname === '/dashboard';
+    if (isDashboard) {
+      const newMode = !darkMode;
+      setDarkMode(newMode);
+      if (newMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      localStorage.setItem('user-dashboard-theme', newMode ? 'dark' : 'light');
+    }
+  };
+
+  useEffect(() => {
+    const isDashboard = location.pathname === '/dashboard';
+    if (isDashboard) {
+      const savedTheme = localStorage.getItem('user-dashboard-theme');
+      if (savedTheme === 'dark') {
+        setDarkMode(true);
+        document.documentElement.classList.add('dark');
+      } else {
+        setDarkMode(false);
+        document.documentElement.classList.remove('dark');
+      }
+    } else {
+      document.documentElement.classList.remove('dark');
+      setDarkMode(false);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -439,6 +473,25 @@ const Navigation = () => {
                         Dashboard
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setProfileModalOpen(true)} className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      Profile Settings
+                    </DropdownMenuItem>
+                    {location.pathname === '/dashboard' && (
+                      <DropdownMenuItem onClick={toggleDarkMode} className="flex items-center gap-2">
+                        {darkMode ? (
+                          <>
+                            <Sun className="h-4 w-4" />
+                            Light Mode
+                          </>
+                        ) : (
+                          <>
+                            <Moon className="h-4 w-4" />
+                            Dark Mode
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-red-600">
                       <LogOut className="h-4 w-4" />
@@ -671,6 +724,10 @@ const Navigation = () => {
         isOpen={authModalOpen} 
         onClose={() => setAuthModalOpen(false)}
         defaultMode={authMode}
+      />
+      <UserProfileModal 
+        open={profileModalOpen} 
+        onOpenChange={setProfileModalOpen} 
       />
     </>
   );
