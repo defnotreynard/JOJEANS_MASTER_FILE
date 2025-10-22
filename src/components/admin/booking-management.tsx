@@ -154,11 +154,15 @@ export function BookingManagement() {
 
   const getStatusColor = (status) => {
     switch (status) {
+      case "active":
+        return "default"
       case "confirmed":
         return "default"
       case "pending":
         return "secondary"
       case "inquiry":
+        return "outline"
+      case "completed":
         return "outline"
       case "cancelled":
         return "destructive"
@@ -169,6 +173,25 @@ export function BookingManagement() {
 
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
     try {
+      // First, get the event details
+      const { data: event, error: fetchError } = await supabase
+        .from('events')
+        .select('user_id, event_type, reference_id, event_date, event_time, venue_location, guest_count, guest_count_range')
+        .eq('id', bookingId)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // Fetch the profile separately
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('user_id', event.user_id)
+        .single()
+
+      if (profileError) throw profileError
+
+      // Update the status
       const { error } = await supabase
         .from('events')
         .update({ status: newStatus })
@@ -176,7 +199,50 @@ export function BookingManagement() {
 
       if (error) throw error
 
-      toast.success(`Booking status updated to ${newStatus}`)
+      // Create notification for the user
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: event.user_id,
+          title: '📋 Booking Status Updated',
+          message: `Your ${event.event_type} booking (Ref: ${event.reference_id}) status has been changed to ${newStatus}`,
+          type: 'info',
+          link: '/user-dashboard'
+        })
+
+      if (notifError) {
+        console.error('Error creating notification:', notifError)
+      }
+
+      // Send confirmation email if status is confirmed
+      if (newStatus === 'confirmed' && profile?.email) {
+          try {
+            const { error: emailError } = await supabase.functions.invoke('send-booking-confirmation', {
+              body: {
+                clientName: profile.full_name || 'Valued Client',
+                clientEmail: profile.email,
+                eventType: event.event_type,
+                eventDate: event.event_date || 'TBD',
+                eventTime: event.event_time || 'TBD',
+                venue: event.venue_location || 'TBD',
+                guests: event.guest_count ? event.guest_count.toString() : event.guest_count_range || 'TBD',
+                referenceId: event.reference_id
+              }
+            })
+
+          if (emailError) {
+            console.error('Error sending confirmation email:', emailError)
+            toast.error('Status updated but failed to send confirmation email')
+          } else {
+            toast.success(`Booking confirmed and email sent to ${profile.email}`)
+          }
+        } catch (emailErr) {
+          console.error('Error invoking email function:', emailErr)
+        }
+      } else {
+        toast.success(`Booking status updated to ${newStatus}`)
+      }
+
       fetchBookings()
     } catch (error: any) {
       console.error('Error updating booking status:', error)
@@ -443,27 +509,41 @@ export function BookingManagement() {
                               <Label>Current Status:</Label>
                               <Badge variant={getStatusColor(selectedBooking.status)}>{selectedBooking.status}</Badge>
                             </div>
-                            <div className="flex space-x-2 mt-3">
+                            <div className="flex flex-wrap gap-2 mt-3">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => updateBookingStatus(selectedBooking.id, "confirmed")}
+                                onClick={() => updateBookingStatus(selectedBooking.id, "active")}
                               >
-                                Confirm
+                                Active
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => updateBookingStatus(selectedBooking.id, "pending")}
                               >
-                                Set Pending
+                                Pending
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => updateBookingStatus(selectedBooking.id, "confirmed")}
+                              >
+                                Confirmed
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => updateBookingStatus(selectedBooking.id, "completed")}
+                              >
+                                Completed
                               </Button>
                               <Button
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => updateBookingStatus(selectedBooking.id, "cancelled")}
                               >
-                                Cancel
+                                Cancelled
                               </Button>
                             </div>
                           </div>

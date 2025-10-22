@@ -151,6 +151,23 @@ const UserDashboard = () => {
     return 'Not specified';
   };
 
+  const getStatusColor = (status: string | null) => {
+    switch (status) {
+      case "active":
+        return "default"
+      case "confirmed":
+        return "default"
+      case "pending":
+        return "secondary"
+      case "completed":
+        return "outline"
+      case "cancelled":
+        return "destructive"
+      default:
+        return "secondary"
+    }
+  };
+
   const weddingEvents = [
     
   ];
@@ -301,7 +318,9 @@ const UserDashboard = () => {
                         <div className="space-y-3 sm:space-y-4">
                           <div>
                             <div className="text-xs sm:text-sm mb-2">Status</div>
-                            <Badge variant="default" className="text-xs">Active</Badge>
+                            <Badge variant={getStatusColor(event.status)} className="text-xs capitalize">
+                              {event.status || 'Active'}
+                            </Badge>
                           </div>
                           <div>
                             <div className="text-xs sm:text-sm mb-2">Created</div>

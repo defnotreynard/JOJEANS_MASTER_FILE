@@ -19,6 +19,7 @@ import { AuthModal } from '@/components/AuthModal';
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
+import { UserNotificationsDropdown } from '@/components/user/notifications-dropdown';
 
 interface SearchResult {
   id: string;
@@ -413,6 +414,9 @@ const Navigation = () => {
                   </div>
                 )}
               </div>
+              
+              {/* Notification Icon for logged in users */}
+              {user && <UserNotificationsDropdown />}
               
               {/* Auth Section */}
               {user ? (
