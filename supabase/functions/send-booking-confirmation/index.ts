@@ -45,167 +45,342 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Jojean's Events <bookings@jojeansevents.sbs>",
       to: [clientEmail],
-      subject: `🎉 Booking Confirmed - ${eventType} Event`,
+      subject: `✨ Booking Confirmed - ${eventType} | Jojean's Events`,
       html: `
         <!DOCTYPE html>
         <html>
         <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
             body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
               line-height: 1.6;
-              color: #333;
+              color: #262626;
+              background: #f8faf9;
+              padding: 20px;
+            }
+            .email-container {
               max-width: 600px;
               margin: 0 auto;
-              padding: 20px;
+              background: white;
+              border-radius: 16px;
+              overflow: hidden;
+              box-shadow: 0 10px 40px rgba(0, 191, 166, 0.08);
             }
             .header {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              background: linear-gradient(135deg, #00bfa6 0%, #00d4b8 100%);
               color: white;
-              padding: 30px 20px;
-              border-radius: 10px 10px 0 0;
+              padding: 40px 30px;
               text-align: center;
+              position: relative;
+            }
+            .logo {
+              width: 80px;
+              height: 80px;
+              margin: 0 auto 20px;
+              background: white;
+              border-radius: 50%;
+              padding: 12px;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+            .logo img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+            .header h1 {
+              font-size: 32px;
+              font-weight: 700;
+              margin: 0 0 8px 0;
+              letter-spacing: -0.5px;
+            }
+            .header p {
+              font-size: 16px;
+              margin: 0;
+              opacity: 0.95;
+              font-weight: 400;
             }
             .content {
-              background: #f9fafb;
-              padding: 30px 20px;
-              border-radius: 0 0 10px 10px;
+              padding: 40px 30px;
             }
-            .booking-details {
-              background: white;
-              padding: 20px;
-              border-radius: 8px;
-              margin: 20px 0;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            .greeting {
+              font-size: 18px;
+              color: #262626;
+              margin-bottom: 16px;
+              font-weight: 600;
+            }
+            .intro-text {
+              color: #525252;
+              font-size: 15px;
+              margin-bottom: 24px;
+              line-height: 1.7;
+            }
+            .reference-badge {
+              display: inline-block;
+              background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+              color: #92400e;
+              padding: 12px 20px;
+              border-radius: 10px;
+              font-weight: 700;
+              font-size: 14px;
+              margin: 10px 0 30px 0;
+              border: 2px solid #fbbf24;
+            }
+            .event-details-card {
+              background: #f8faf9;
+              padding: 28px;
+              border-radius: 12px;
+              margin: 24px 0;
+              border: 2px solid #e0f2ef;
+            }
+            .event-details-card h3 {
+              color: #00bfa6;
+              font-size: 18px;
+              margin: 0 0 20px 0;
+              font-weight: 700;
+              display: flex;
+              align-items: center;
+              gap: 8px;
             }
             .detail-row {
               display: flex;
               justify-content: space-between;
-              padding: 10px 0;
-              border-bottom: 1px solid #e5e7eb;
+              padding: 14px 0;
+              border-bottom: 1px solid #e0f2ef;
+              align-items: center;
             }
             .detail-row:last-child {
               border-bottom: none;
             }
             .detail-label {
               font-weight: 600;
-              color: #6b7280;
+              color: #525252;
+              font-size: 14px;
             }
             .detail-value {
-              color: #111827;
+              color: #262626;
+              font-weight: 600;
+              font-size: 14px;
+              text-align: right;
             }
-            .schedule-section {
-              background: #eff6ff;
-              padding: 20px;
-              border-radius: 8px;
-              margin: 20px 0;
-              border-left: 4px solid #3b82f6;
+            .next-steps-card {
+              background: linear-gradient(135deg, #e0f2ef 0%, #d1f0ea 100%);
+              padding: 28px;
+              border-radius: 12px;
+              margin: 24px 0;
+              border-left: 4px solid #00bfa6;
+            }
+            .next-steps-card h3 {
+              color: #047857;
+              font-size: 18px;
+              margin: 0 0 16px 0;
+              font-weight: 700;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+            .next-steps-card p {
+              color: #047857;
+              font-size: 15px;
+              margin-bottom: 12px;
+              line-height: 1.6;
+            }
+            .next-steps-card ul {
+              margin: 16px 0;
+              padding-left: 20px;
+              color: #047857;
+            }
+            .next-steps-card li {
+              margin: 8px 0;
+              font-size: 14px;
             }
             .cta-button {
               display: inline-block;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              background: linear-gradient(135deg, #00bfa6 0%, #00d4b8 100%);
               color: white;
-              padding: 14px 28px;
+              padding: 16px 32px;
               text-decoration: none;
-              border-radius: 6px;
-              font-weight: 600;
-              margin: 15px 0;
+              border-radius: 10px;
+              font-weight: 700;
+              font-size: 15px;
+              margin: 20px 0;
               text-align: center;
+              box-shadow: 0 4px 16px rgba(0, 191, 166, 0.25);
+              transition: transform 0.2s;
+            }
+            .info-box {
+              background: #fef9f3;
+              padding: 20px;
+              border-radius: 10px;
+              margin-top: 24px;
+              border: 2px solid #fde68a;
+            }
+            .info-box strong {
+              color: #92400e;
+              font-size: 15px;
+            }
+            .info-box ul {
+              margin: 12px 0 0 0;
+              padding-left: 20px;
+              color: #92400e;
+            }
+            .info-box li {
+              margin: 8px 0;
+              font-size: 14px;
+            }
+            .closing-text {
+              color: #525252;
+              font-size: 15px;
+              margin-top: 28px;
+              line-height: 1.6;
+            }
+            .signature {
+              margin-top: 24px;
+              color: #262626;
+            }
+            .signature p {
+              margin: 4px 0;
+              font-size: 15px;
+            }
+            .signature strong {
+              color: #00bfa6;
+              font-size: 16px;
             }
             .footer {
+              background: #f8faf9;
               text-align: center;
-              color: #6b7280;
-              font-size: 14px;
-              margin-top: 30px;
-              padding-top: 20px;
-              border-top: 1px solid #e5e7eb;
+              padding: 30px;
+              color: #737373;
+              font-size: 13px;
+              border-top: 2px solid #e0f2ef;
             }
-            .reference {
-              background: #fef3c7;
-              padding: 10px 15px;
-              border-radius: 6px;
-              font-weight: 600;
-              display: inline-block;
-              margin: 10px 0;
+            .footer p {
+              margin: 8px 0;
+              line-height: 1.5;
+            }
+            .footer-logo {
+              font-weight: 700;
+              color: #00bfa6;
+              font-size: 14px;
+              margin-top: 12px;
+            }
+            @media only screen and (max-width: 600px) {
+              body {
+                padding: 10px;
+              }
+              .content {
+                padding: 30px 20px;
+              }
+              .header {
+                padding: 30px 20px;
+              }
+              .header h1 {
+                font-size: 26px;
+              }
+              .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+              }
+              .detail-value {
+                text-align: left;
+              }
             }
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1 style="margin: 0; font-size: 28px;">✨ Booking Confirmed!</h1>
-            <p style="margin: 10px 0 0 0; opacity: 0.95;">Your event booking has been approved</p>
-          </div>
-          
-          <div class="content">
-            <p style="font-size: 16px; margin-top: 0;">Hi ${clientName},</p>
-            
-            <p>Great news! Your <strong>${eventType}</strong> event booking has been confirmed. We're excited to help make your event memorable!</p>
-            
-            <div class="reference">
-              📋 Reference ID: ${referenceId}
+          <div class="email-container">
+            <div class="header">
+              <div class="logo">
+                <img src="https://jojeansevents.sbs/logo.png" alt="Jojean's Events Logo" />
+              </div>
+              <h1>✨ Booking Confirmed!</h1>
+              <p>Your event booking has been approved</p>
             </div>
             
-            <div class="booking-details">
-              <h3 style="margin-top: 0; color: #111827;">📅 Event Details</h3>
-              <div class="detail-row">
-                <span class="detail-label">Event Type:</span>
-                <span class="detail-value">${eventType}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Date:</span>
-                <span class="detail-value">${eventDate}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Time:</span>
-                <span class="detail-value">${eventTime}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Venue:</span>
-                <span class="detail-value">${venue}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Expected Guests:</span>
-                <span class="detail-value">${guests}</span>
-              </div>
-            </div>
-            
-            <div class="schedule-section">
-              <h3 style="margin-top: 0; color: #1e40af;">📝 Next Steps: Schedule Contract Signing</h3>
-              <p style="margin-bottom: 15px;">To finalize everything, we need to schedule a meeting for contract signing and to discuss final details of your event.</p>
+            <div class="content">
+              <div class="greeting">Hi ${clientName},</div>
               
-              <p><strong>Please provide your preferred meeting details:</strong></p>
-              <ul style="margin: 10px 0;">
-                <li>Preferred date and time</li>
-                <li>Meeting location preference (our office or virtual)</li>
-                <li>Any specific questions or requirements</li>
-              </ul>
+              <p class="intro-text">Fantastic news! Your <strong>${eventType}</strong> event booking has been confirmed. We're thrilled and honored to be part of your special celebration. Our team is committed to making your event absolutely unforgettable!</p>
               
-              <p>Reply to this email with your availability, and we'll confirm the meeting details as soon as possible.</p>
+              <div class="reference-badge">
+                📋 Booking Reference: ${referenceId}
+              </div>
               
-              <a href="${schedulingLink}" class="cta-button" style="color: white;">View Your Dashboard</a>
+              <div class="event-details-card">
+                <h3>📅 Your Event Details</h3>
+                <div class="detail-row">
+                  <span class="detail-label">Event Type</span>
+                  <span class="detail-value">${eventType}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Event Date</span>
+                  <span class="detail-value">${eventDate}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Event Time</span>
+                  <span class="detail-value">${eventTime}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Venue Location</span>
+                  <span class="detail-value">${venue}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Expected Guests</span>
+                  <span class="detail-value">${guests}</span>
+                </div>
+              </div>
+              
+              <div class="next-steps-card">
+                <h3>📝 Next Step: Contract Signing & Final Details</h3>
+                <p>To finalize your booking and ensure everything is perfect, we need to schedule a meeting for contract signing and to go over the final details of your event.</p>
+                
+                <p style="font-weight: 600; margin-top: 16px;">Please reply to this email with:</p>
+                <ul>
+                  <li>Your preferred date and time for the meeting</li>
+                  <li>Meeting preference (in-person at our office or virtual meeting)</li>
+                  <li>Any specific questions or special requirements you'd like to discuss</li>
+                </ul>
+                
+                <p style="margin-top: 16px;">We'll confirm the meeting details as soon as we receive your response.</p>
+                
+                <center>
+                  <a href="${schedulingLink}" class="cta-button">View Your Dashboard</a>
+                </center>
+              </div>
+              
+              <div class="info-box">
+                <strong>💡 What We'll Cover in the Meeting:</strong>
+                <ul>
+                  <li>Contract review and signing</li>
+                  <li>Detailed event timeline and coordination</li>
+                  <li>Payment terms and schedule</li>
+                  <li>Special requests, modifications, and customizations</li>
+                  <li>Vendor coordination and logistics</li>
+                </ul>
+              </div>
+              
+              <p class="closing-text">If you have any questions right now or need to make changes to your booking details, please don't hesitate to reach out. We're here to help make your event planning experience smooth and enjoyable!</p>
+              
+              <div class="signature">
+                <p>Warmest regards,</p>
+                <p><strong>The Jojean's Events Team</strong></p>
+                <p style="font-size: 14px; color: #525252; margin-top: 8px;">Creating Unforgettable Moments</p>
+              </div>
             </div>
             
-            <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; margin-top: 20px;">
-              <p style="margin: 0; font-size: 14px;"><strong>💡 What to Expect:</strong></p>
-              <ul style="margin: 10px 0; font-size: 14px;">
-                <li>Contract review and signing</li>
-                <li>Final event timeline discussion</li>
-                <li>Payment terms and schedule</li>
-                <li>Any special requests or modifications</li>
-              </ul>
+            <div class="footer">
+              <p><strong>Booking Reference:</strong> ${referenceId}</p>
+              <p>This email was sent regarding your confirmed event booking.</p>
+              <p>If you didn't make this booking, please contact us immediately.</p>
+              <p class="footer-logo">Jojean's Events</p>
             </div>
-            
-            <p style="margin-top: 25px;">If you have any questions or need to make changes to your booking, please don't hesitate to reach out.</p>
-            
-            <p>We look forward to meeting with you soon!</p>
-            
-            <p style="margin-bottom: 5px;">Best regards,</p>
-            <p style="margin-top: 5px;"><strong>The Event Planning Team</strong></p>
-          </div>
-          
-          <div class="footer">
-            <p>This email was sent regarding your event booking (Ref: ${referenceId})</p>
-            <p>If you didn't request this booking, please contact us immediately.</p>
           </div>
         </body>
         </html>

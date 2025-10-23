@@ -378,8 +378,8 @@ const Navigation = () => {
             </div>
 
             {/* Right side - Search, Login, Mobile menu */}
-            <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center space-x-2 relative" ref={searchRef}>
+            <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center relative" ref={searchRef}>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input

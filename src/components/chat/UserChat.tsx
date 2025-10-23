@@ -28,7 +28,30 @@ export const UserChat = () => {
   const [position, setPosition] = useState({ x: window.innerWidth - 420, y: window.innerHeight - 530 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 768) {
+        // On mobile, position at bottom center
+        setPosition({ 
+          x: window.innerWidth / 2 - (window.innerWidth * 0.95) / 2, 
+          y: window.innerHeight - (window.innerHeight * 0.8) - 20 
+        });
+      } else {
+        setPosition({ 
+          x: window.innerWidth - 420, 
+          y: window.innerHeight - 530 
+        });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -120,6 +143,7 @@ export const UserChat = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (isMobile) return; // Disable dragging on mobile
     e.preventDefault();
     e.stopPropagation();
     console.log('UserChat: Mouse down detected', { x: e.clientX, y: e.clientY });
@@ -219,20 +243,21 @@ export const UserChat = () => {
       
       {/* Draggable chat card */}
       <Card 
-        className="w-96 h-[500px] shadow-2xl flex flex-col"
+        className="w-96 h-[500px] md:w-96 md:h-[500px] w-[95vw] h-[80vh] max-h-[600px] shadow-2xl flex flex-col"
         style={{
           position: 'fixed',
-          left: `${position.x}px`,
-          top: `${position.y}px`,
+          left: isMobile ? '50%' : `${position.x}px`,
+          top: isMobile ? '50%' : `${position.y}px`,
+          transform: isMobile ? 'translate(-50%, -50%)' : 'none',
           cursor: isDragging ? 'grabbing' : 'default',
           zIndex: 9999
         }}
       >
       <CardHeader 
-        className="flex flex-row items-center justify-between space-y-0 pb-4 cursor-grab active:cursor-grabbing"
+        className={`flex flex-row items-center justify-between space-y-0 pb-4 ${!isMobile ? 'cursor-grab active:cursor-grabbing' : ''}`}
         onMouseDown={handleMouseDown}
         style={{ 
-          touchAction: 'none',
+          touchAction: isMobile ? 'auto' : 'none',
           userSelect: 'none',
           WebkitUserSelect: 'none',
           MozUserSelect: 'none'
