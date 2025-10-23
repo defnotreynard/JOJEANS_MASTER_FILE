@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
     const schedulingLink = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '')}/user-dashboard`;
 
     const emailResponse = await resend.emails.send({
-      from: "Event Bookings <onboarding@resend.dev>",
+      from: "Jojean's Events <bookings@jojeansevents.sbs>",
       to: [clientEmail],
       subject: `🎉 Booking Confirmed - ${eventType} Event`,
       html: `
