@@ -144,10 +144,13 @@ export function BookingManagement() {
   }
 
   const filteredBookings = bookings.filter((booking) => {
-    const matchesSearch =
+    const matchesSearch = searchTerm === "" || 
       booking.client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.client.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.event.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.id.toLowerCase().includes(searchTerm.toLowerCase())
+      booking.event.venue.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.reference_id.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === "all" || booking.status === statusFilter
     return matchesSearch && matchesStatus
   })

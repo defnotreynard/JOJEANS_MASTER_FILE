@@ -45,7 +45,8 @@ export const AdminChat = () => {
     if (user) {
       if (isOpen) {
         loadUserChats();
-        subscribeToMessages();
+        const cleanup = subscribeToMessages();
+        return cleanup;
       } else {
         loadUserChats();
       }
@@ -59,9 +60,17 @@ export const AdminChat = () => {
   }, [selectedUserId, isOpen]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    const scrollToBottom = () => {
+      if (scrollRef.current) {
+        const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (viewport) {
+          viewport.scrollTop = viewport.scrollHeight;
+        }
+      }
+    };
+    
+    // Small delay to ensure DOM is updated
+    setTimeout(scrollToBottom, 0);
   }, [messages]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -347,9 +356,9 @@ export const AdminChat = () => {
         </CardHeader>
 
         {selectedUserId ? (
-          <CardContent className="flex-1 flex flex-col p-4 pt-0 space-y-4">
-            <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
-              <div className="space-y-4">
+          <CardContent className="flex-1 flex flex-col p-4 pt-0 space-y-4 overflow-hidden">
+            <ScrollArea className="flex-1 pr-4 h-full" ref={scrollRef}>
+              <div className="space-y-4 pb-4">
                 {messages.map((msg) => (
                   <div
                     key={msg.id}

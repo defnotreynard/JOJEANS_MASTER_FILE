@@ -34,7 +34,8 @@ export const UserChat = () => {
     if (user) {
       if (isOpen) {
         loadMessages();
-        subscribeToMessages();
+        const cleanup = subscribeToMessages();
+        return cleanup;
       } else {
         loadUnreadCount();
       }
@@ -56,7 +57,10 @@ export const UserChat = () => {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
     }
   }, [messages]);
 
@@ -245,9 +249,9 @@ export const UserChat = () => {
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-4 pt-0 space-y-4">
-        <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
-          <div className="space-y-4">
+      <CardContent className="flex-1 flex flex-col p-4 pt-0 space-y-4 overflow-hidden">
+        <ScrollArea className="flex-1 pr-4 h-full" ref={scrollRef}>
+          <div className="space-y-4 pb-4">
             {messages.map((msg) => (
               <div
                 key={msg.id}
