@@ -298,7 +298,7 @@ const handler = async (req: Request): Promise<Response> => {
           <div class="email-container">
             <div class="header">
               <div class="logo">
-                <img src="https://jojeansevents.sbs/logo.png" alt="Jojean's Events Logo" />
+                <img src="logo.png" alt="Jojean's Events Logo" />
               </div>
               <h1>✨ Booking Confirmed!</h1>
               <p>Your event booking has been approved</p>
@@ -316,23 +316,23 @@ const handler = async (req: Request): Promise<Response> => {
               <div class="event-details-card">
                 <h3>📅 Your Event Details</h3>
                 <div class="detail-row">
-                  <span class="detail-label">Event Type</span>
+                  <span class="detail-label">Event Type:</span>
                   <span class="detail-value">${eventType}</span>
                 </div>
                 <div class="detail-row">
-                  <span class="detail-label">Event Date</span>
+                  <span class="detail-label">Event Date:</span>
                   <span class="detail-value">${eventDate}</span>
                 </div>
                 <div class="detail-row">
-                  <span class="detail-label">Event Time</span>
+                  <span class="detail-label">Event Time:</span>
                   <span class="detail-value">${eventTime}</span>
                 </div>
                 <div class="detail-row">
-                  <span class="detail-label">Venue Location</span>
+                  <span class="detail-label">Venue Location:</span>
                   <span class="detail-value">${venue}</span>
                 </div>
                 <div class="detail-row">
-                  <span class="detail-label">Expected Guests</span>
+                  <span class="detail-label">Expected Guests:</span>
                   <span class="detail-value">${guests}</span>
                 </div>
               </div>
