@@ -67,6 +67,7 @@ export function BookingManagement() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [createEventModalOpen, setCreateEventModalOpen] = useState(false)
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
 
   useEffect(() => {
     fetchBookings()
@@ -262,6 +263,36 @@ export function BookingManagement() {
     if (!editingBooking) return
 
     try {
+      // Get the user_id for this event to check for duplicates
+      const { data: eventData, error: fetchError } = await supabase
+        .from('events')
+        .select('user_id, date_flexible')
+        .eq('id', editingBooking.id)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // Check for duplicate events before updating (exclude current event)
+      if (editingBooking.event.date && editingBooking.event.time && editingBooking.event.date !== 'Date not set' && editingBooking.event.time !== 'Time not set' && !eventData.date_flexible) {
+        const { data: existingEvents, error: checkError } = await supabase
+          .from('events')
+          .select('*')
+          .eq('user_id', eventData.user_id)
+          .eq('event_type', editingBooking.event.type)
+          .eq('event_date', editingBooking.event.date)
+          .eq('event_time', editingBooking.event.time)
+          .neq('id', editingBooking.id)
+
+        if (checkError) {
+          console.error('Error checking for duplicates:', checkError)
+        }
+
+        if (existingEvents && existingEvents.length > 0) {
+          setShowDuplicateDialog(true)
+          return
+        }
+      }
+
       const { error } = await supabase
         .from('events')
         .update({
@@ -917,6 +948,26 @@ export function BookingManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Duplicate Event Alert Dialog */}
+      <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-destructive" />
+              Duplicate Event Detected
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This client already has an event with the same type, date, and time. Please choose different details to avoid duplicates.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button onClick={() => setShowDuplicateDialog(false)}>
+              OK
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

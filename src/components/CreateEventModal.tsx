@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Check, DollarSign, MapPin, Users, Calendar } from 'lucide-react';
+import { ArrowLeft, Check, DollarSign, MapPin, Users, Calendar, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface CreateEventModalProps {
   open: boolean;
@@ -85,6 +86,7 @@ const venues = [
 export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEvent }: CreateEventModalProps) {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [formData, setFormData] = useState({
     eventType: '',
     customEventType: '',
@@ -215,6 +217,27 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
 
       // Update existing event or create new one
       if (editingEvent) {
+        // Check for duplicate events before updating (exclude current event)
+        if (formData.eventDate && formData.eventTime && !formData.dateFlexible) {
+          const { data: existingEvents, error: checkError } = await supabase
+            .from('events')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('event_type', finalEventType)
+            .eq('event_date', formData.eventDate)
+            .eq('event_time', formData.eventTime)
+            .neq('id', editingEvent.id); // Exclude the current event being edited
+
+          if (checkError) {
+            console.error('Error checking for duplicates:', checkError);
+          }
+
+          if (existingEvents && existingEvents.length > 0) {
+            setShowDuplicateDialog(true);
+            return;
+          }
+        }
+
         const { error } = await supabase
           .from('events')
           .update(eventData)
@@ -228,6 +251,26 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
 
         alert('Event updated successfully!');
       } else {
+        // Check for duplicate events before creating
+        if (formData.eventDate && formData.eventTime && !formData.dateFlexible) {
+          const { data: existingEvents, error: checkError } = await supabase
+            .from('events')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('event_type', finalEventType)
+            .eq('event_date', formData.eventDate)
+            .eq('event_time', formData.eventTime);
+
+          if (checkError) {
+            console.error('Error checking for duplicates:', checkError);
+          }
+
+          if (existingEvents && existingEvents.length > 0) {
+            setShowDuplicateDialog(true);
+            return;
+          }
+        }
+
         // Generate reference ID only for new events
         const { data: refData } = await supabase.rpc('generate_event_reference');
         
@@ -625,20 +668,21 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center space-x-2">
-            {step > 1 && (
-              <Button variant="ghost" size="sm" onClick={handleBack}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-            <DialogTitle>
-              {getStepTitle()}
-            </DialogTitle>
-          </div>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center space-x-2">
+              {step > 1 && (
+                <Button variant="ghost" size="sm" onClick={handleBack}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              )}
+              <DialogTitle>
+                {getStepTitle()}
+              </DialogTitle>
+            </div>
+          </DialogHeader>
 
         <div className="py-6">
           {renderStep()}
@@ -665,5 +709,25 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
         </div>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            Duplicate Event Detected
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            You already have an event with the same type, date, and time. Please choose different details to avoid duplicates.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button onClick={() => setShowDuplicateDialog(false)}>
+            OK
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
