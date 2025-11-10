@@ -140,6 +140,62 @@ export type Database = {
         }
         Relationships: []
       }
+      guests: {
+        Row: {
+          created_at: string
+          email: string | null
+          event_id: string
+          group_name: string | null
+          id: string
+          meal_preference: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          rsvp_status: string
+          table_number: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          event_id: string
+          group_name?: string | null
+          id?: string
+          meal_preference?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          rsvp_status?: string
+          table_number?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          event_id?: string
+          group_name?: string | null
+          id?: string
+          meal_preference?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          rsvp_status?: string
+          table_number?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           created_at: string

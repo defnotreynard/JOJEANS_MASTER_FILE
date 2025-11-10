@@ -7,14 +7,20 @@ import {
   Calendar, 
   Users, 
   Calculator, 
-  CheckSquare, 
-  Gift, 
   Settings,
   Plus,
   Heart,
   MapPin,
   DollarSign,
-  UserPlus
+  UserPlus,
+  Mail,
+  Trash2,
+  Download,
+  Edit,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  FileText
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +40,21 @@ const UserDashboard = () => {
   const [userEvents, setUserEvents] = useState<any[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [guests, setGuests] = useState<any[]>([]);
+  const [selectedEventForGuests, setSelectedEventForGuests] = useState<string>('');
+  const [showAddGuestModal, setShowAddGuestModal] = useState(false);
+  const [editingGuest, setEditingGuest] = useState<any>(null);
+  const [guestForm, setGuestForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    rsvp_status: 'pending',
+    meal_preference: '',
+    group_name: '',
+    table_number: '',
+    notes: ''
+  });
+  const [guestSearchQuery, setGuestSearchQuery] = useState('');
 
   // Check if user has admin/super_admin role and redirect
   useEffect(() => {
@@ -63,6 +84,12 @@ const UserDashboard = () => {
       fetchUserEvents();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (selectedEventForGuests) {
+      fetchGuests();
+    }
+  }, [selectedEventForGuests]);
 
   const fetchUserEvents = async () => {
     if (!user) return;
@@ -113,6 +140,232 @@ const UserDashboard = () => {
     setCreateEventModalOpen(false);
     setEditingEvent(null);
   };
+
+  const fetchGuests = async () => {
+    if (!selectedEventForGuests) return;
+
+    const { data, error } = await supabase
+      .from('guests')
+      .select('*')
+      .eq('event_id', selectedEventForGuests)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching guests:', error);
+    } else {
+      setGuests(data || []);
+    }
+  };
+
+  const handleAddGuest = () => {
+    setEditingGuest(null);
+    setGuestForm({
+      name: '',
+      email: '',
+      phone: '',
+      rsvp_status: 'pending',
+      meal_preference: '',
+      group_name: '',
+      table_number: '',
+      notes: ''
+    });
+    setShowAddGuestModal(true);
+  };
+
+  const handleEditGuest = (guest: any) => {
+    setEditingGuest(guest);
+    setGuestForm({
+      name: guest.name,
+      email: guest.email || '',
+      phone: guest.phone || '',
+      rsvp_status: guest.rsvp_status,
+      meal_preference: guest.meal_preference || '',
+      group_name: guest.group_name || '',
+      table_number: guest.table_number?.toString() || '',
+      notes: guest.notes || ''
+    });
+    setShowAddGuestModal(true);
+  };
+
+  const handleSaveGuest = async () => {
+    if (!guestForm.name.trim()) {
+      alert('Please enter guest name');
+      return;
+    }
+
+    if (!selectedEventForGuests) {
+      alert('Please select an event first');
+      return;
+    }
+
+    const guestData = {
+      event_id: selectedEventForGuests,
+      user_id: user?.id,
+      name: guestForm.name,
+      email: guestForm.email || null,
+      phone: guestForm.phone || null,
+      rsvp_status: guestForm.rsvp_status,
+      meal_preference: guestForm.meal_preference || null,
+      group_name: guestForm.group_name || null,
+      table_number: guestForm.table_number ? parseInt(guestForm.table_number) : null,
+      notes: guestForm.notes || null
+    };
+
+    if (editingGuest) {
+      const { error } = await supabase
+        .from('guests')
+        .update(guestData)
+        .eq('id', editingGuest.id);
+
+      if (error) {
+        console.error('Error updating guest:', error);
+        alert('Error updating guest: ' + error.message);
+        return;
+      }
+
+      alert('Guest updated successfully!');
+    } else {
+      const { data: newGuest, error } = await supabase
+        .from('guests')
+        .insert(guestData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding guest:', error);
+        alert('Error adding guest: ' + error.message);
+        return;
+      }
+
+      // Send invitation email if guest has an email
+      if (guestForm.email && newGuest) {
+        try {
+          const selectedEventData = userEvents.find(e => e.id === selectedEventForGuests);
+          
+          // Get user's profile name
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('user_id', user?.id)
+            .single();
+
+          await supabase.functions.invoke('send-guest-invitation', {
+            body: {
+              guestName: guestForm.name,
+              guestEmail: guestForm.email,
+              eventType: selectedEventData?.event_type || 'Event',
+              eventDate: selectedEventData?.event_date 
+                ? new Date(selectedEventData.event_date).toLocaleDateString() 
+                : 'TBD',
+              eventLocation: selectedEventData?.venue_location || 'Location TBD',
+              hostName: profile?.full_name || 'The Host',
+              guestId: newGuest.id
+            }
+          });
+
+          alert('Guest added and invitation email sent!');
+        } catch (emailError) {
+          console.error('Error sending invitation email:', emailError);
+          alert('Guest added but failed to send invitation email. Please try again later.');
+        }
+      } else {
+        alert('Guest added successfully!');
+      }
+    }
+
+    setShowAddGuestModal(false);
+    fetchGuests();
+  };
+
+  const handleDeleteGuest = async (guestId: string) => {
+    if (!confirm('Are you sure you want to delete this guest?')) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from('guests')
+      .delete()
+      .eq('id', guestId);
+
+    if (error) {
+      console.error('Error deleting guest:', error);
+      alert('Error deleting guest: ' + error.message);
+      return;
+    }
+
+    alert('Guest deleted successfully!');
+    fetchGuests();
+  };
+
+  const exportGuestList = () => {
+    if (guests.length === 0) {
+      alert('No guests to export');
+      return;
+    }
+
+    const csvContent = [
+      ['Name', 'Email', 'Phone', 'RSVP Status', 'Meal Preference', 'Group', 'Table Number', 'Notes'],
+      ...guests.map(g => [
+        g.name,
+        g.email || '',
+        g.phone || '',
+        g.rsvp_status,
+        g.meal_preference || '',
+        g.group_name || '',
+        g.table_number || '',
+        g.notes || ''
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `guest-list-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const getRSVPStats = () => {
+    const attending = guests.filter(g => g.rsvp_status === 'attending').length;
+    const declined = guests.filter(g => g.rsvp_status === 'declined').length;
+    const pending = guests.filter(g => g.rsvp_status === 'pending').length;
+    return { attending, declined, pending, total: guests.length };
+  };
+
+  const getRSVPIcon = (status: string) => {
+    switch (status) {
+      case 'attending':
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case 'declined':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+    }
+  };
+
+  const getRSVPBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'attending':
+        return 'default';
+      case 'declined':
+        return 'destructive';
+      default:
+        return 'secondary';
+    }
+  };
+
+  const filteredGuests = guests.filter(guest => {
+    const searchLower = guestSearchQuery.toLowerCase();
+    return (
+      guest.name.toLowerCase().includes(searchLower) ||
+      guest.email?.toLowerCase().includes(searchLower) ||
+      guest.phone?.toLowerCase().includes(searchLower) ||
+      guest.group_name?.toLowerCase().includes(searchLower)
+    );
+  });
 
   const formatEventDate = (dateStr: string | null) => {
     if (!dateStr) return 'Date not set';
@@ -196,10 +449,10 @@ const UserDashboard = () => {
       color: 'text-wedding-gold'
     },
     {
-      title: 'Cash Registry',
-      description: 'Set up your honeymoon fund',
-      action: 'Get Started',
-      icon: Gift,
+      title: 'Manage Budget',
+      description: 'Track your event expenses',
+      action: 'View Budget',
+      icon: DollarSign,
       color: 'text-wedding-sage'
     }
   ];
@@ -234,28 +487,14 @@ const UserDashboard = () => {
 
             {/* Tabs Navigation */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5 gap-1 h-auto p-1">
+              <TabsList className="grid w-full grid-cols-2 gap-1 h-auto p-1">
                 <TabsTrigger value="home" className="flex flex-col sm:flex-row items-center sm:space-x-2 px-2 py-2 text-xs sm:text-sm">
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>Home</span>
                 </TabsTrigger>
-                <TabsTrigger value="checklist" className="flex flex-col sm:flex-row items-center sm:space-x-2 px-2 py-2 text-xs sm:text-sm">
-                  <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Checklist</span>
-                  <span className="sm:hidden">Tasks</span>
-                </TabsTrigger>
                 <TabsTrigger value="guests" className="flex flex-col sm:flex-row items-center sm:space-x-2 px-2 py-2 text-xs sm:text-sm">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>Guests</span>
-                </TabsTrigger>
-                <TabsTrigger value="budget" className="flex flex-col sm:flex-row items-center sm:space-x-2 px-2 py-2 text-xs sm:text-sm">
-                  <Calculator className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>Budget</span>
-                </TabsTrigger>
-                <TabsTrigger value="registry" className="flex flex-col sm:flex-row items-center sm:space-x-2 px-2 py-2 text-xs sm:text-sm">
-                  <Gift className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Registry</span>
-                  <span className="sm:hidden">Gifts</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -293,18 +532,12 @@ const UserDashboard = () => {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                          <div className="grid grid-cols-2 gap-2 sm:gap-4">
                             <div className="bg-primary/10 rounded-lg p-2 sm:p-3 text-center">
                               <div className="text-sm sm:text-lg lg:text-2xl font-bold text-primary">
                                 {getGuestDisplay(event.guest_count, event.guest_count_range)}
                               </div>
                               <div className="text-[10px] sm:text-xs text-muted-foreground">Guests</div>
-                            </div>
-                            <div className="bg-wedding-gold/10 rounded-lg p-2 sm:p-3 text-center">
-                              <div className="text-sm sm:text-lg lg:text-2xl font-bold text-wedding-gold break-words">
-                                {getBudgetDisplay(event.budget_amount, event.budget_range)}
-                              </div>
-                              <div className="text-[10px] sm:text-xs text-muted-foreground">Budget</div>
                             </div>
                             <div className="bg-wedding-sage/20 rounded-lg p-2 sm:p-3 text-center">
                               <div className="text-xs sm:text-sm lg:text-lg font-bold text-wedding-charcoal break-words">
@@ -548,62 +781,223 @@ const UserDashboard = () => {
               </TabsContent>
 
               {/* Other tabs content would go here */}
-              <TabsContent value="checklist">
+              <TabsContent value="guests" className="space-y-4">
+                {/* Event Selector */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base sm:text-lg lg:text-xl">Wedding Checklist</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">Track your wedding planning progress</CardDescription>
+                    <CardTitle className="text-base sm:text-lg">Select Event</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
+                      Choose an event to manage its guest list
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground">
-                      Checklist feature coming soon...
-                    </p>
+                    <select
+                      className="w-full p-2 border rounded-md bg-background text-foreground"
+                      value={selectedEventForGuests}
+                      onChange={(e) => setSelectedEventForGuests(e.target.value)}
+                    >
+                      <option value="">-- Select an event --</option>
+                      {userEvents.map((event) => (
+                        <option key={event.id} value={event.id}>
+                          {event.event_type} - {formatEventDate(event.event_date)} (Ref: {event.reference_id})
+                        </option>
+                      ))}
+                    </select>
                   </CardContent>
                 </Card>
+
+                {selectedEventForGuests && (
+                  <>
+                    {/* RSVP Summary Stats */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                      <Card className="p-3 sm:p-4">
+                        <div className="text-center">
+                          <div className="text-2xl sm:text-3xl font-bold text-foreground">
+                            {getRSVPStats().total}
+                          </div>
+                          <div className="text-xs sm:text-sm text-muted-foreground mt-1">Total Guests</div>
+                        </div>
+                      </Card>
+                      <Card className="p-3 sm:p-4">
+                        <div className="text-center">
+                          <div className="text-2xl sm:text-3xl font-bold text-green-500">
+                            {getRSVPStats().attending}
+                          </div>
+                          <div className="text-xs sm:text-sm text-muted-foreground mt-1">Attending</div>
+                        </div>
+                      </Card>
+                      <Card className="p-3 sm:p-4">
+                        <div className="text-center">
+                          <div className="text-2xl sm:text-3xl font-bold text-red-500">
+                            {getRSVPStats().declined}
+                          </div>
+                          <div className="text-xs sm:text-sm text-muted-foreground mt-1">Declined</div>
+                        </div>
+                      </Card>
+                      <Card className="p-3 sm:p-4">
+                        <div className="text-center">
+                          <div className="text-2xl sm:text-3xl font-bold text-yellow-500">
+                            {getRSVPStats().pending}
+                          </div>
+                          <div className="text-xs sm:text-sm text-muted-foreground mt-1">Pending</div>
+                        </div>
+                      </Card>
+                    </div>
+
+                    {/* Actions Bar */}
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                      <Button onClick={handleAddGuest} size="sm" className="flex-1">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Guest
+                      </Button>
+                      <Button onClick={exportGuestList} size="sm" variant="outline" className="flex-1">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export List
+                      </Button>
+                    </div>
+
+                    {/* Search Filter */}
+                    <Card className="p-3">
+                      <input
+                        type="text"
+                        placeholder="Search guests by name, email, phone, or group..."
+                        className="w-full p-2 border rounded-md bg-background text-foreground text-sm"
+                        value={guestSearchQuery}
+                        onChange={(e) => setGuestSearchQuery(e.target.value)}
+                      />
+                    </Card>
+
+                    {/* Guest List Cards */}
+                    <div className="space-y-2">
+                      {filteredGuests.length > 0 ? (
+                        filteredGuests.map((guest) => (
+                          <Card key={guest.id} className="p-2 sm:p-3 hover:shadow-card transition-all">
+                            <div className="grid sm:grid-cols-12 gap-2 sm:gap-3 items-center">
+                              {/* Guest ID and Info - Similar to Booking ID */}
+                              <div className="sm:col-span-5 space-y-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0.5">
+                                    ID: {guest.id.slice(0, 8)}
+                                  </Badge>
+                                  {guest.group_name && (
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                                      {guest.group_name}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-sm">{guest.name}</h3>
+                                  <div className="flex flex-col text-[11px] text-muted-foreground space-y-0.5">
+                                    {guest.email && (
+                                      <div className="flex items-center gap-1">
+                                        <Mail className="h-2.5 w-2.5" />
+                                        <span className="truncate">{guest.email}</span>
+                                      </div>
+                                    )}
+                                    {guest.phone && (
+                                      <span>📱 {guest.phone}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* RSVP Status and Details */}
+                              <div className="sm:col-span-4 space-y-1">
+                                <div className="flex items-center gap-1.5">
+                                  {getRSVPIcon(guest.rsvp_status)}
+                                  <Badge variant={getRSVPBadgeVariant(guest.rsvp_status)} className="text-[10px] capitalize px-1.5 py-0.5">
+                                    {guest.rsvp_status}
+                                  </Badge>
+                                </div>
+                                {guest.meal_preference && (
+                                  <div className="text-[11px] text-muted-foreground">
+                                    🍽️ {guest.meal_preference}
+                                  </div>
+                                )}
+                                {guest.table_number && (
+                                  <div className="text-[11px] text-muted-foreground">
+                                    🪑 Table {guest.table_number}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Actions */}
+                              <div className="sm:col-span-3 flex gap-1.5">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 text-[10px] h-7 px-2"
+                                  onClick={() => handleEditGuest(guest)}
+                                >
+                                  <Edit className="h-2.5 w-2.5 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="flex-1 text-[10px] h-7 px-2"
+                                  onClick={() => handleDeleteGuest(guest.id)}
+                                >
+                                  <Trash2 className="h-2.5 w-2.5 mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Notes */}
+                            {guest.notes && (
+                              <div className="mt-2 pt-2 border-t">
+                                <div className="flex items-start gap-1.5">
+                                  <FileText className="h-3 w-3 text-muted-foreground mt-0.5" />
+                                  <p className="text-[11px] text-muted-foreground">{guest.notes}</p>
+                                </div>
+                              </div>
+                            )}
+                          </Card>
+                        ))
+                      ) : guests.length > 0 ? (
+                        <Card className="p-6 text-center">
+                          <div className="space-y-2">
+                            <div className="text-3xl">🔍</div>
+                            <h3 className="text-base font-semibold">No guests found</h3>
+                            <p className="text-xs text-muted-foreground">
+                              Try adjusting your search query
+                            </p>
+                          </div>
+                        </Card>
+                      ) : (
+                        <Card className="p-8 text-center">
+                          <div className="space-y-3">
+                            <div className="text-4xl">👥</div>
+                            <h3 className="text-lg font-semibold">No guests yet</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Start building your guest list by adding your first guest
+                            </p>
+                            <Button size="sm" onClick={handleAddGuest}>
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add First Guest
+                            </Button>
+                          </div>
+                        </Card>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {!selectedEventForGuests && (
+                  <Card className="p-8 text-center">
+                    <div className="space-y-3">
+                      <div className="text-4xl">📋</div>
+                      <h3 className="text-lg font-semibold">Select an Event</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Choose an event from the dropdown above to manage its guest list
+                      </p>
+                    </div>
+                  </Card>
+                )}
               </TabsContent>
 
-              <TabsContent value="guests">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base sm:text-lg lg:text-xl">Guest Management</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">Manage your wedding guest list and RSVPs</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground">
-                      Guest management feature coming soon...
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
 
-
-              <TabsContent value="budget">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base sm:text-lg lg:text-xl">Budget Tracker</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">Monitor your wedding expenses and payments</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground">
-                      Budget tracker feature coming soon...
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="registry">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base sm:text-lg lg:text-xl">Wedding Registry</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">Create and manage your wedding gift registry</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground">
-                      Registry feature coming soon...
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
             </Tabs>
           </div>
         </div>
@@ -615,6 +1009,119 @@ const UserDashboard = () => {
         onEventCreated={handleEventCreated}
         editingEvent={editingEvent}
       />
+
+      {/* Add/Edit Guest Modal */}
+      <Dialog open={showAddGuestModal} onOpenChange={setShowAddGuestModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingGuest ? 'Edit Guest' : 'Add New Guest'}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Name *</Label>
+                <input
+                  type="text"
+                  className="w-full p-2 border rounded-md bg-background text-foreground"
+                  value={guestForm.name}
+                  onChange={(e) => setGuestForm({ ...guestForm, name: e.target.value })}
+                  placeholder="Guest full name"
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <input
+                  type="email"
+                  className="w-full p-2 border rounded-md bg-background text-foreground"
+                  value={guestForm.email}
+                  onChange={(e) => setGuestForm({ ...guestForm, email: e.target.value })}
+                  placeholder="guest@example.com"
+                />
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Phone</Label>
+                <input
+                  type="tel"
+                  className="w-full p-2 border rounded-md bg-background text-foreground"
+                  value={guestForm.phone}
+                  onChange={(e) => setGuestForm({ ...guestForm, phone: e.target.value })}
+                  placeholder="+1 234 567 8900"
+                />
+              </div>
+              <div>
+                <Label>RSVP Status</Label>
+                <select
+                  className="w-full p-2 border rounded-md bg-background text-foreground"
+                  value={guestForm.rsvp_status}
+                  onChange={(e) => setGuestForm({ ...guestForm, rsvp_status: e.target.value })}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="attending">Attending</option>
+                  <option value="declined">Declined</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Meal Preference</Label>
+                <input
+                  type="text"
+                  className="w-full p-2 border rounded-md bg-background text-foreground"
+                  value={guestForm.meal_preference}
+                  onChange={(e) => setGuestForm({ ...guestForm, meal_preference: e.target.value })}
+                  placeholder="e.g., Vegetarian, Vegan"
+                />
+              </div>
+              <div>
+                <Label>Group Name</Label>
+                <input
+                  type="text"
+                  className="w-full p-2 border rounded-md bg-background text-foreground"
+                  value={guestForm.group_name}
+                  onChange={(e) => setGuestForm({ ...guestForm, group_name: e.target.value })}
+                  placeholder="e.g., Family, Friends"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Table Number</Label>
+              <input
+                type="number"
+                className="w-full p-2 border rounded-md bg-background text-foreground"
+                value={guestForm.table_number}
+                onChange={(e) => setGuestForm({ ...guestForm, table_number: e.target.value })}
+                placeholder="Assign table number"
+              />
+            </div>
+
+            <div>
+              <Label>Notes</Label>
+              <textarea
+                className="w-full p-2 border rounded-md bg-background text-foreground"
+                rows={3}
+                value={guestForm.notes}
+                onChange={(e) => setGuestForm({ ...guestForm, notes: e.target.value })}
+                placeholder="Any special notes or requirements"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button variant="outline" onClick={() => setShowAddGuestModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveGuest}>
+                {editingGuest ? 'Update Guest' : 'Add Guest'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Event Details Modal */}
       {selectedEvent && (
@@ -650,15 +1157,9 @@ const UserDashboard = () => {
                 </div>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <Label className="text-xs sm:text-sm font-medium">Guests</Label>
-                  <p className="text-sm sm:text-base">{getGuestDisplay(selectedEvent.guest_count, selectedEvent.guest_count_range)}</p>
-                </div>
-                <div>
-                  <Label className="text-xs sm:text-sm font-medium">Budget</Label>
-                  <p className="text-sm sm:text-base">{getBudgetDisplay(selectedEvent.budget_amount, selectedEvent.budget_range)}</p>
-                </div>
+              <div>
+                <Label className="text-xs sm:text-sm font-medium">Guests</Label>
+                <p className="text-sm sm:text-base">{getGuestDisplay(selectedEvent.guest_count, selectedEvent.guest_count_range)}</p>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">

@@ -2,3 +2,9 @@ project_id = "ivgvgvhhkdcjozayahcr"
 
 [functions.send-booking-confirmation]
 verify_jwt = false
+
+[functions.send-guest-invitation]
+verify_jwt = false
+
+[functions.confirm-guest-invitation]
+verify_jwt = false
