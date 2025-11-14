@@ -20,6 +20,7 @@ import Shop from "./pages/Shop";
 import Services from "./pages/Services";
 import Venues from "./pages/Venues";
 import Auth from "./pages/Auth";
+import Deletion from "./pages/Deletion";
 import NotFound from "./pages/NotFound";
 
 // Create QueryClient outside component to prevent re-creation
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/shop" element={<Shop />} />
             <Route path="/services" element={<Services />} />
             <Route path="/venues" element={<Venues />} />
+            <Route path="/deletion" element={<Deletion />} />
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
