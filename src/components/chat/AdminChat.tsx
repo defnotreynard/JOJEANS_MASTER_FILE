@@ -393,17 +393,24 @@ export const AdminChat = () => {
                 className={`flex items-center justify-between w-full p-3 rounded-lg transition-colors ${
                   selectedUserId === chat.user_id
                     ? 'bg-primary text-primary-foreground'
+                    : blockedUsers.has(chat.user_id)
+                    ? 'bg-destructive/10 hover:bg-destructive/20'
                     : 'hover:bg-muted'
                 }`}
               >
                 <button
                   onClick={() => setSelectedUserId(chat.user_id)}
                   className="flex-1 text-left min-w-0"
-                  disabled={blockedUsers.has(chat.user_id)}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <p className="font-medium text-sm truncate">
+                    <p className="font-medium text-sm truncate flex items-center gap-1">
                       {chat.full_name}
+                      {blockedUsers.has(chat.user_id) && (
+                        <Ban className="h-3 w-3 text-destructive" />
+                      )}
+                      {mutedUsers.has(chat.user_id) && (
+                        <Volume2 className="h-3 w-3 text-muted-foreground" />
+                      )}
                     </p>
                     {chat.unread_count > 0 && (
                       <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs ml-1">
@@ -454,36 +461,36 @@ export const AdminChat = () => {
                 </Button>
                 
                 {openMenuId === selectedUserId && (
-                  <div className="absolute right-8 top-0 mt-0 w-48 bg-white border rounded-md shadow-lg z-50">
+                  <div className="absolute right-8 top-0 mt-0 w-48 bg-popover border border-border rounded-md shadow-lg z-50">
                     <button
                       onClick={() => {
                         toggleMuteUser(selectedUserId);
                         setOpenMenuId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm text-gray-700"
+                      className="w-full text-left px-4 py-2 hover:bg-accent flex items-center gap-2 text-sm text-popover-foreground"
                     >
                       <Volume2 className="h-4 w-4" />
-                      <span>{mutedUsers.has(selectedUserId) ? 'Unmute' : 'Mute'}</span>
+                      <span>{mutedUsers.has(selectedUserId) ? 'Unmute Notifications' : 'Mute Notifications'}</span>
                     </button>
                     <button
                       onClick={() => {
                         toggleBlockUser(selectedUserId);
                         setOpenMenuId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm text-gray-700"
+                      className="w-full text-left px-4 py-2 hover:bg-accent flex items-center gap-2 text-sm text-popover-foreground"
                     >
                       <Ban className="h-4 w-4" />
-                      <span>{blockedUsers.has(selectedUserId) ? 'Unblock' : 'Block'}</span>
+                      <span>{blockedUsers.has(selectedUserId) ? 'Unblock User' : 'Block User'}</span>
                     </button>
                     <button
                       onClick={() => {
                         deleteConversation(selectedUserId);
                         setOpenMenuId(null);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm text-red-600"
+                      className="w-full text-left px-4 py-2 hover:bg-destructive/10 flex items-center gap-2 text-sm text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
-                      <span>Delete</span>
+                      <span>Delete Conversation</span>
                     </button>
                   </div>
                 )}
@@ -526,22 +533,37 @@ export const AdminChat = () => {
                 ))}
               </div>
             </ScrollArea>
-            <div className="flex gap-2">
-              <Input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Type a message..."
-                disabled={loading}
-              />
-              <Button
-                onClick={sendMessage}
-                disabled={loading || !newMessage.trim()}
-                size="icon"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
+            {blockedUsers.has(selectedUserId) ? (
+              <div className="flex items-center justify-between gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive">This user is blocked. You cannot send messages.</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleBlockUser(selectedUserId)}
+                  className="shrink-0"
+                >
+                  <Ban className="h-4 w-4 mr-2" />
+                  Unblock
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  placeholder="Type a message..."
+                  disabled={loading}
+                />
+                <Button
+                  onClick={sendMessage}
+                  disabled={loading || !newMessage.trim()}
+                  size="icon"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </CardContent>
         ) : (
           <CardContent className="flex-1 flex items-center justify-center text-muted-foreground">
