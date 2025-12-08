@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -45,6 +46,11 @@ import {
   ImageIcon,
   Calendar,
   Users,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  X,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
@@ -57,6 +63,10 @@ export function GalleryManagement() {
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+  const [viewingItem, setViewingItem] = useState<any>(null)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
   const [newItem, setNewItem] = useState({
     title: "",
@@ -88,7 +98,14 @@ export function GalleryManagement() {
         .order("created_at", { ascending: false })
 
       if (error) throw error
-      setGalleryItems(data || [])
+      
+      // Ensure images are properly parsed as arrays
+      const processedData = (data || []).map((item: any) => ({
+        ...item,
+        images: Array.isArray(item.images) ? item.images : (typeof item.images === 'string' ? JSON.parse(item.images) : []),
+      }))
+      
+      setGalleryItems(processedData)
     } catch (error) {
       console.error("Error fetching gallery items:", error)
       toast({
@@ -339,6 +356,44 @@ export function GalleryManagement() {
         variant: "destructive",
       })
     }
+  }
+
+  const handleViewItem = (item: any) => {
+    // Ensure images are properly processed as an array
+    const processedItem = {
+      ...item,
+      images: Array.isArray(item.images) ? item.images : (typeof item.images === 'string' ? JSON.parse(item.images) : []),
+    }
+    setViewingItem(processedItem)
+    setSelectedImageIndex(0)
+    setIsLightboxOpen(false)
+    setIsViewDialogOpen(true)
+  }
+
+  const handlePrevImage = () => {
+    if (!viewingItem?.images || viewingItem.images.length === 0) {
+      console.log('No images available for navigation')
+      return
+    }
+    const imageCount = viewingItem.images.length
+    setSelectedImageIndex((prev) => {
+      const newIndex = prev === 0 ? imageCount - 1 : prev - 1
+      console.log('Previous image:', prev, '→', newIndex)
+      return newIndex
+    })
+  }
+
+  const handleNextImage = () => {
+    if (!viewingItem?.images || viewingItem.images.length === 0) {
+      console.log('No images available for navigation')
+      return
+    }
+    const imageCount = viewingItem.images.length
+    setSelectedImageIndex((prev) => {
+      const newIndex = prev === imageCount - 1 ? 0 : prev + 1
+      console.log('Next image:', prev, '→', newIndex)
+      return newIndex
+    })
   }
 
   const handleEditItem = (item: any) => {
@@ -923,7 +978,7 @@ export function GalleryManagement() {
                           <Button variant="ghost" size="sm" onClick={() => handleEditItem(item)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handleViewItem(item)}>
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -1012,7 +1067,7 @@ export function GalleryManagement() {
                     <Button variant="ghost" size="sm" onClick={() => handleEditItem(item)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={() => handleViewItem(item)}>
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button 
@@ -1312,6 +1367,347 @@ export function GalleryManagement() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* View Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setIsViewDialogOpen(false)
+          setIsLightboxOpen(false)
+          setSelectedImageIndex(0)
+        }
+      }}>
+        <DialogContent 
+          className="max-w-4xl max-h-[95vh]"
+          onInteractOutside={(e) => {
+            e.preventDefault()
+          }}
+          onEscapeKeyDown={(e) => {
+            e.preventDefault()
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Gallery Item Details</DialogTitle>
+            <DialogDescription>View gallery item information and images</DialogDescription>
+          </DialogHeader>
+          {viewingItem && (
+            <ScrollArea className="max-h-[75vh] pr-4">
+              <div className="space-y-6">
+                {/* Image Viewer with Navigation */}
+                {viewingItem.images && viewingItem.images.length > 0 && (
+                  <div className="relative">
+                    {/* Main Image Display */}
+                    <div 
+                      className="relative bg-black/5 rounded-lg overflow-hidden cursor-pointer"
+                      onClick={() => setIsLightboxOpen(true)}
+                    >
+                      <img
+                        src={viewingItem.images[selectedImageIndex]}
+                        alt={`${viewingItem.title} - ${selectedImageIndex + 1}`}
+                        className="w-full h-80 object-contain"
+                      />
+                      
+                      {/* Expand Button */}
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute top-3 right-3 h-9 w-9 bg-background/80 hover:bg-background z-10"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setIsLightboxOpen(true)
+                        }}
+                      >
+                        <ZoomIn className="h-4 w-4" />
+                      </Button>
+
+                      {/* Image Counter */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-background/80 px-3 py-1 rounded-full text-sm font-medium">
+                        {selectedImageIndex + 1} / {viewingItem.images.length}
+                      </div>
+                    </div>
+
+                    {/* Navigation Arrows */}
+                    {viewingItem.images.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/80 hover:bg-background shadow-lg flex items-center justify-center transition-colors z-10"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            e.preventDefault()
+                            handlePrevImage()
+                          }}
+                        >
+                          <ChevronLeft className="h-6 w-6" />
+                        </button>
+                        <button
+                          type="button"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/80 hover:bg-background shadow-lg flex items-center justify-center transition-colors z-10"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            e.preventDefault()
+                            handleNextImage()
+                          }}
+                        >
+                          <ChevronRight className="h-6 w-6" />
+                        </button>
+                      </>
+                    )}
+
+                    {/* Thumbnail Strip */}
+                    {viewingItem.images.length > 1 && (
+                      <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
+                        {viewingItem.images.map((url: string, index: number) => (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedImageIndex(index)}
+                            className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${
+                              selectedImageIndex === index 
+                                ? 'border-primary ring-2 ring-primary/20' 
+                                : 'border-transparent hover:border-muted-foreground/30'
+                            }`}
+                          >
+                            <img
+                              src={url}
+                              alt={`Thumbnail ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Fallback to cover image if no gallery images */}
+                {(!viewingItem.images || viewingItem.images.length === 0) && viewingItem.cover_image && (
+                  <div className="relative">
+                    <img
+                      src={viewingItem.cover_image}
+                      alt={viewingItem.title}
+                      className="w-full h-64 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
+
+                {/* Basic Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Title</Label>
+                    <p className="font-semibold">{viewingItem.title}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Couple</Label>
+                    <p className="font-semibold">{viewingItem.couple || "N/A"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Location</Label>
+                    <p>{viewingItem.location || "N/A"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Category</Label>
+                    <Badge variant="outline" className="mt-1">{viewingItem.category}</Badge>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Style</Label>
+                    <Badge variant="secondary" className="mt-1">{viewingItem.style || "N/A"}</Badge>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Status</Label>
+                    <Badge variant={viewingItem.status === "published" ? "default" : "secondary"} className="mt-1">
+                      {viewingItem.status}
+                    </Badge>
+                  </div>
+                  {viewingItem.event_date && (
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Event Date</Label>
+                      <p>{new Date(viewingItem.event_date).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {viewingItem.guest_count && (
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Guest Count</Label>
+                      <p>{viewingItem.guest_count}</p>
+                    </div>
+                  )}
+                  {viewingItem.package && (
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Package</Label>
+                      <Badge variant="outline" className="mt-1">{viewingItem.package}</Badge>
+                    </div>
+                  )}
+                </div>
+
+                {/* Description */}
+                {viewingItem.description && (
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Description</Label>
+                    <p className="text-sm mt-1">{viewingItem.description}</p>
+                  </div>
+                )}
+
+                {/* Services */}
+                {viewingItem.services && viewingItem.services.length > 0 && (
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Services</Label>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {viewingItem.services.map((service: string, index: number) => (
+                        <Badge key={index} variant="outline">{service}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Stats */}
+                <div className="flex gap-6 py-2 border-t border-b">
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Views</Label>
+                    <p className="text-lg font-semibold">{viewingItem.views || 0}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Likes</Label>
+                    <p className="text-lg font-semibold">{viewingItem.likes || 0}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Photos</Label>
+                    <p className="text-lg font-semibold">{viewingItem.images?.length || 0}</p>
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={() => {
+              setIsViewDialogOpen(false)
+              handleEditItem(viewingItem)
+            }}>
+              Edit Item
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Fullscreen Lightbox - rendered via portal to escape dialog */}
+      {isLightboxOpen && viewingItem && Array.isArray(viewingItem.images) && viewingItem.images.length > 0 && createPortal(
+        <div 
+          className="fixed inset-0 z-[9999]"
+        >
+          {/* Background overlay - clickable to close */}
+          <div
+            className="absolute inset-0 bg-black/95"
+            onClick={() => setIsLightboxOpen(false)}
+            style={{ pointerEvents: 'auto' }}
+          />
+          
+          {/* Content wrapper - prevents clicks from reaching background */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {/* Close Button */}
+            <button
+              type="button"
+              className="absolute top-4 right-4 h-12 w-12 flex items-center justify-center text-white hover:bg-white/20 rounded-full z-40 transition-colors pointer-events-auto"
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsLightboxOpen(false)
+              }}
+            >
+              <X className="h-8 w-8" />
+            </button>
+
+            {/* Image Counter */}
+            <div className="absolute top-4 left-4 text-white text-lg font-medium z-40 pointer-events-none">
+              {selectedImageIndex + 1} / {viewingItem.images?.length || 0}
+            </div>
+
+            {/* Main Image Container */}
+            <div className="flex items-center justify-center">
+              {viewingItem.images[selectedImageIndex] && (
+                <img
+                  src={viewingItem.images[selectedImageIndex]}
+                  alt={`${viewingItem.title} - ${selectedImageIndex + 1}`}
+                  className="max-w-[calc(100vw-140px)] max-h-[85vh] object-contain"
+                />
+              )}
+            </div>
+
+            {/* Navigation Arrows */}
+            {viewingItem.images && viewingItem.images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 h-16 w-16 flex items-center justify-center text-white rounded-full transition-all duration-200 bg-black/50 hover:bg-black/80 shadow-lg pointer-events-auto"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handlePrevImage()
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handlePrevImage()
+                  }}
+                >
+                  <ChevronLeft className="h-12 w-12" />
+                </button>
+                <button
+                  type="button"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 h-16 w-16 flex items-center justify-center text-white rounded-full transition-all duration-200 bg-black/50 hover:bg-black/80 shadow-lg pointer-events-auto"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleNextImage()
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleNextImage()
+                  }}
+                >
+                  <ChevronRight className="h-12 w-12" />
+                </button>
+              </>
+            )}
+
+          {/* Thumbnail Strip */}
+          {/* Thumbnail Strip */}
+          {viewingItem.images && viewingItem.images.length > 1 && (
+            <div 
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-4 py-2 bg-black/50 rounded-lg max-w-[90vw] overflow-x-auto pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              {viewingItem.images.map((url: string, index: number) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedImageIndex(index)
+                  }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                  }}
+                  className={`flex-shrink-0 w-14 h-14 rounded-md overflow-hidden border-2 transition-all ${
+                    selectedImageIndex === index 
+                      ? 'border-white ring-2 ring-white/30' 
+                      : 'border-transparent hover:border-white/50 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img
+                    src={url}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
