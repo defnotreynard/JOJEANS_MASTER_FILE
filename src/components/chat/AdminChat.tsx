@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MessageCircle, X } from "lucide-react";
+import { Send, MessageCircle, X, MoreVertical, Trash2, Volume2, Ban } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Message {
   id: string;
@@ -39,6 +45,9 @@ export const AdminChat = () => {
   const [position, setPosition] = useState({ x: window.innerWidth - 620, y: window.innerHeight - 530 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [mutedUsers, setMutedUsers] = useState<Set<string>>(new Set());
+  const [blockedUsers, setBlockedUsers] = useState<Set<string>>(new Set());
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -125,6 +134,12 @@ export const AdminChat = () => {
       return;
     }
 
+    // If no messages, set empty chats
+    if (!messagesData || messagesData.length === 0) {
+      setUserChats([]);
+      return;
+    }
+
     // Group by user_id and get profiles
     const userIds = [...new Set(messagesData.map(m => m.user_id))];
     const { data: profiles, error: profilesError } = await supabase
@@ -138,7 +153,7 @@ export const AdminChat = () => {
     }
 
     // Create user chat list with unread counts
-    const chats: UserChat[] = profiles.map(profile => {
+    const chats: UserChat[] = (profiles || []).map(profile => {
       const userMessages = messagesData.filter(m => m.user_id === profile.user_id);
       const unreadCount = userMessages.filter(m => m.sender_type === 'user' && !m.read).length;
       const lastMsg = userMessages[0];
@@ -180,7 +195,10 @@ export const AdminChat = () => {
       .eq('sender_type', 'user')
       .eq('read', false);
 
-    loadUserChats();
+    // Don't reload all chats, just update unread count for this user
+    setUserChats(prev => prev.map(chat => 
+      chat.user_id === userId ? { ...chat, unread_count: 0 } : chat
+    ));
   };
 
   const subscribeToMessages = () => {
@@ -238,6 +256,76 @@ export const AdminChat = () => {
       setNewMessage("");
     }
     setLoading(false);
+  };
+
+  const deleteConversation = async (userId: string) => {
+    console.log('Deleting conversation for user:', userId);
+    
+    const { data, error } = await supabase
+      .from('messages')
+      .delete()
+      .eq('user_id', userId)
+      .select();
+
+    if (error) {
+      console.error('Error deleting conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation",
+        variant: "destructive",
+      });
+    } else {
+      console.log('Deleted messages:', data);
+      toast({
+        title: "Success",
+        description: "Conversation deleted permanently",
+      });
+      if (selectedUserId === userId) {
+        setSelectedUserId(null);
+        setMessages([]);
+      }
+      // Remove from userChats list
+      setUserChats(prev => prev.filter(chat => chat.user_id !== userId));
+    }
+  };
+
+  const toggleMuteUser = (userId: string) => {
+    const newMutedUsers = new Set(mutedUsers);
+    if (newMutedUsers.has(userId)) {
+      newMutedUsers.delete(userId);
+      toast({
+        title: "Success",
+        description: "Notifications unmuted for this user",
+      });
+    } else {
+      newMutedUsers.add(userId);
+      toast({
+        title: "Success",
+        description: "Notifications muted for this user",
+      });
+    }
+    setMutedUsers(newMutedUsers);
+  };
+
+  const toggleBlockUser = (userId: string) => {
+    const newBlockedUsers = new Set(blockedUsers);
+    if (newBlockedUsers.has(userId)) {
+      newBlockedUsers.delete(userId);
+      toast({
+        title: "Success",
+        description: "User unblocked",
+      });
+    } else {
+      newBlockedUsers.add(userId);
+      toast({
+        title: "Success",
+        description: "User blocked",
+      });
+      if (selectedUserId === userId) {
+        setSelectedUserId(null);
+      }
+    }
+    setBlockedUsers(newBlockedUsers);
   };
 
   if (!isOpen) {
@@ -300,29 +388,34 @@ export const AdminChat = () => {
         <ScrollArea className="h-[calc(500px-60px)]">
           <div className="space-y-1 p-2">
             {userChats.map((chat) => (
-              <button
+              <div
                 key={chat.user_id}
-                onClick={() => setSelectedUserId(chat.user_id)}
-                className={`w-full text-left p-3 rounded-lg transition-colors ${
+                className={`flex items-center justify-between w-full p-3 rounded-lg transition-colors ${
                   selectedUserId === chat.user_id
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-muted'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <p className="font-medium text-sm truncate">
-                    {chat.full_name}
+                <button
+                  onClick={() => setSelectedUserId(chat.user_id)}
+                  className="flex-1 text-left min-w-0"
+                  disabled={blockedUsers.has(chat.user_id)}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-medium text-sm truncate">
+                      {chat.full_name}
+                    </p>
+                    {chat.unread_count > 0 && (
+                      <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs ml-1">
+                        {chat.unread_count}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs opacity-70 truncate">
+                    {chat.last_message}
                   </p>
-                  {chat.unread_count > 0 && (
-                    <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-xs">
-                      {chat.unread_count}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-xs opacity-70 truncate">
-                  {chat.last_message}
-                </p>
-              </button>
+                </button>
+              </div>
             ))}
           </div>
         </ScrollArea>
@@ -344,15 +437,68 @@ export const AdminChat = () => {
               ? userChats.find(c => c.user_id === selectedUserId)?.full_name || 'Chat'
               : 'Select a user'}
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen(false)}
-            onMouseDown={(e) => e.stopPropagation()}
-            className="pointer-events-auto"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            {selectedUserId && (
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenMenuId(openMenuId === selectedUserId ? null : selectedUserId);
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="pointer-events-auto h-8 w-8"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+                
+                {openMenuId === selectedUserId && (
+                  <div className="absolute right-8 top-0 mt-0 w-48 bg-white border rounded-md shadow-lg z-50">
+                    <button
+                      onClick={() => {
+                        toggleMuteUser(selectedUserId);
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm text-gray-700"
+                    >
+                      <Volume2 className="h-4 w-4" />
+                      <span>{mutedUsers.has(selectedUserId) ? 'Unmute' : 'Mute'}</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        toggleBlockUser(selectedUserId);
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm text-gray-700"
+                    >
+                      <Ban className="h-4 w-4" />
+                      <span>{blockedUsers.has(selectedUserId) ? 'Unblock' : 'Block'}</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        deleteConversation(selectedUserId);
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(false)}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="pointer-events-auto h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
 
         {selectedUserId ? (
