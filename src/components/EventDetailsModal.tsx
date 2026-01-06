@@ -16,22 +16,26 @@ interface EventDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   event: {
-    id: number;
-    image: string;
+    id?: number;
+    image?: string;
+    cover_image?: string;
     images?: string[];
     title: string;
-    couple: string;
-    location: string;
-    date: string;
-    guests: number;
-    style: string;
-    venue: string;
-    description: string;
-    likes: number;
-    views: number;
-    package: string;
-    packagePrice: string;
-    packagePromo: string;
+    couple?: string;
+    location?: string;
+    date?: string;
+    event_date?: string;
+    guests?: number;
+    guest_count?: number;
+    style?: string;
+    category?: string;
+    venue?: string;
+    description?: string;
+    likes?: number;
+    views?: number;
+    package?: string;
+    packagePrice?: string;
+    packagePromo?: string;
   } | null;
 }
 
@@ -78,12 +82,12 @@ const EventDetailsModal = ({ isOpen, onClose, event }: EventDetailsModalProps) =
           {/* Event Image */}
           <div className="relative rounded-lg overflow-hidden">
             <img 
-              src={event.image} 
+              src={event.image || event.cover_image || ''} 
               alt={event.title}
               className="w-full h-[400px] object-cover"
             />
             <Badge className="absolute top-4 left-4 bg-background/95 text-foreground">
-              {event.style}
+              {event.style || event.category}
             </Badge>
           </div>
 
@@ -92,22 +96,30 @@ const EventDetailsModal = ({ isOpen, onClose, event }: EventDetailsModalProps) =
             <div>
               <h3 className="text-lg font-semibold mb-3">Event Details</h3>
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Heart className="h-4 w-4 text-primary" />
-                  <span className="font-medium">{event.couple}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="h-4 w-4 text-primary" />
-                  <span>{event.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  <span>{event.date}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Users className="h-4 w-4 text-primary" />
-                  <span>{event.guests} guests</span>
-                </div>
+                {event.couple && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Heart className="h-4 w-4 text-primary" />
+                    <span className="font-medium">{event.couple}</span>
+                  </div>
+                )}
+                {event.location && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <span>{event.location}</span>
+                  </div>
+                )}
+                {(event.date || event.event_date) && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span>{event.date || (event.event_date && new Date(event.event_date).toLocaleDateString())}</span>
+                  </div>
+                )}
+                {(event.guests || event.guest_count) && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span>{event.guests || event.guest_count} guests</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -117,14 +129,18 @@ const EventDetailsModal = ({ isOpen, onClose, event }: EventDetailsModalProps) =
                 {event.description}
               </p>
               <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Heart className="h-4 w-4" />
-                  {event.likes} likes
-                </span>
-                <span className="flex items-center gap-1">
-                  <Eye className="h-4 w-4" />
-                  {event.views} views
-                </span>
+                {event.likes !== undefined && (
+                  <span className="flex items-center gap-1">
+                    <Heart className="h-4 w-4" />
+                    {event.likes} likes
+                  </span>
+                )}
+                {event.views !== undefined && (
+                  <span className="flex items-center gap-1">
+                    <Eye className="h-4 w-4" />
+                    {event.views} views
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -132,24 +148,26 @@ const EventDetailsModal = ({ isOpen, onClose, event }: EventDetailsModalProps) =
           <Separator />
 
           {/* Package Details */}
-          <div>
-            <h3 className="text-xl font-heading font-semibold mb-4">Event Package</h3>
-            <Card className="border-2 border-primary">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{event.package}</CardTitle>
-                <div className="text-2xl font-bold text-primary">{event.packagePrice}</div>
-                <div className="text-xs text-muted-foreground">Promo: {event.packagePromo}</div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {features.map((feature, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
+          {event.package && (
+            <div>
+              <h3 className="text-xl font-heading font-semibold mb-4">Event Package</h3>
+              <Card className="border-2 border-primary">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">{event.package}</CardTitle>
+                  {event.packagePrice && <div className="text-2xl font-bold text-primary">{event.packagePrice}</div>}
+                  {event.packagePromo && <div className="text-xs text-muted-foreground">Promo: {event.packagePromo}</div>}
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {features.map((feature, idx) => (
+                    <div key={idx} className="flex items-start gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <Separator />
 
