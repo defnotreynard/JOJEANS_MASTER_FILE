@@ -223,11 +223,11 @@ const EventDetailsModal = ({ isOpen, onClose, event }: EventDetailsModalProps) =
             </>
           )}
 
-          <div className="max-w-7xl max-h-[90vh] w-full px-4" onClick={(e) => e.stopPropagation()}>
+          <div className="flex flex-col items-center justify-center px-4" onClick={(e) => e.stopPropagation()}>
             <img
               src={galleryImages[currentImageIndex]}
               alt={`${event.title} - Full size ${currentImageIndex + 1}`}
-              className="w-full h-full object-contain rounded-lg"
+              className="max-w-[85vw] max-h-[80vh] object-contain rounded-lg"
             />
             <div className="text-center text-white mt-4 text-sm">
               {currentImageIndex + 1} / {galleryImages.length}

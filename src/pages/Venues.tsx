@@ -11,6 +11,9 @@ import VenueDetailsModal from '@/components/VenueDetailsModal';
 const Venues = () => {
   const [selectedVenue, setSelectedVenue] = useState<typeof venues[0] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [venueTypeFilter, setVenueTypeFilter] = useState('all');
+  const [capacityFilter, setCapacityFilter] = useState('all');
 
   const venues = [
     {
@@ -156,6 +159,36 @@ const Venues = () => {
     }
   ];
 
+  // Helper to parse capacity number from string like "250 guests"
+  const parseCapacity = (capacityStr: string) => {
+    const match = capacityStr.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  };
+
+  // Filter venues based on search and filters
+  const filteredVenues = venues.filter(venue => {
+    // Search filter
+    const matchesSearch = searchQuery === '' || 
+      venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Venue type filter
+    const matchesType = venueTypeFilter === 'all' || 
+      venue.type.toLowerCase().includes(venueTypeFilter.toLowerCase());
+
+    // Capacity filter
+    const capacity = parseCapacity(venue.capacity);
+    let matchesCapacity = true;
+    if (capacityFilter === 'small') matchesCapacity = capacity <= 100;
+    else if (capacityFilter === 'medium') matchesCapacity = capacity > 100 && capacity <= 250;
+    else if (capacityFilter === 'large') matchesCapacity = capacity > 250 && capacity <= 500;
+    else if (capacityFilter === 'xlarge') matchesCapacity = capacity > 500;
+
+    return matchesSearch && matchesType && matchesCapacity;
+  });
+
   return (
     <div className="min-h-screen bg-background page-transition">
       <Navigation />
@@ -183,25 +216,29 @@ const Venues = () => {
             <Input 
               placeholder="Search venues..." 
               className="flex-1"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Select>
+            <Select value={venueTypeFilter} onValueChange={setVenueTypeFilter}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Venue Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="luxury">Luxury</SelectItem>
-                <SelectItem value="outdoor">Outdoor</SelectItem>
-                <SelectItem value="corporate">Corporate</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="mountain">Mountain</SelectItem>
+                <SelectItem value="resort">Resort</SelectItem>
                 <SelectItem value="beach">Beach</SelectItem>
-                <SelectItem value="historic">Historic</SelectItem>
-                <SelectItem value="rooftop">Rooftop</SelectItem>
+                <SelectItem value="pavilion">Pavilion</SelectItem>
+                <SelectItem value="garden">Garden</SelectItem>
+                <SelectItem value="event">Event</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
+            <Select value={capacityFilter} onValueChange={setCapacityFilter}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Capacity" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">All Capacities</SelectItem>
                 <SelectItem value="small">Up to 100</SelectItem>
                 <SelectItem value="medium">100-250</SelectItem>
                 <SelectItem value="large">250-500</SelectItem>
@@ -212,11 +249,15 @@ const Venues = () => {
         </div>
       </section>
 
-      {/* Venues Grid */}
       <section className="py-16">
         <div className="container mx-auto px-4">
+          {filteredVenues.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-xl text-muted-foreground">No venues found matching your filters.</p>
+            </div>
+          ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {venues.map((venue, index) => (
+            {filteredVenues.map((venue, index) => (
               <Card key={index} className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-2">
                 <div className="relative overflow-hidden">
                   <div 
@@ -272,6 +313,7 @@ const Venues = () => {
               </Card>
             ))}
           </div>
+          )}
         </div>
       </section>
 

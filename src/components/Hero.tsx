@@ -133,10 +133,6 @@ const Hero = () => {
                     <span className="text-sm text-muted-foreground">Final headcount pending</span>
                   </div>
                 </div>
-                
-                <Button className="w-full" variant="outline">
-                  View Event Dashboard
-                </Button>
               </div>
             </div>
             

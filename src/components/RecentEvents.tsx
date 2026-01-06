@@ -159,7 +159,7 @@ const RecentEvents = () => {
         </div>
 
         <div className="text-center">
-          <Link to="/recent-events">
+          <Link to="/gallery">
             <Button size="lg" className="group">
               View All Our Events
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
