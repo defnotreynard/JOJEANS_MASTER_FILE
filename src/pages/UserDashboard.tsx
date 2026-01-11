@@ -442,36 +442,6 @@ const UserDashboard = () => {
     
   ];
 
-  const upcomingTasks = [
-    { id: 1, task: 'Book wedding photographer', dueDate: '2024-04-15', priority: 'high' },
-    { id: 2, task: 'Send save the dates', dueDate: '2024-04-20', priority: 'medium' },
-    { id: 3, task: 'Cake tasting appointments', dueDate: '2024-04-25', priority: 'medium' },
-    { id: 4, task: 'Finalize guest list', dueDate: '2024-05-01', priority: 'low' }
-  ];
-
-  const nextSteps = [
-    {
-      title: 'Take the Style Quiz',
-      description: 'Discover your wedding style preferences',
-      action: 'Start the Quiz',
-      icon: Heart,
-      color: 'text-primary'
-    },
-    {
-      title: 'Invite Your Partner',
-      description: 'Collaborate on your wedding planning',
-      action: 'Invite Partner',
-      icon: UserPlus,
-      color: 'text-wedding-gold'
-    },
-    {
-      title: 'Manage Budget',
-      description: 'Track your event expenses',
-      action: 'View Budget',
-      icon: DollarSign,
-      color: 'text-wedding-sage'
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-background page-transition">
@@ -730,70 +700,6 @@ const UserDashboard = () => {
                   </div>
                 )}
 
-                {/* Next Steps Panel */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base sm:text-lg lg:text-xl font-heading">Next Steps</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                      Complete these steps to make your planning even easier
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-                      {nextSteps.map((step, index) => (
-                        <div key={index} className="text-center space-y-3 sm:space-y-4">
-                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-accent flex items-center justify-center mx-auto`}>
-                            <step.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${step.color}`} />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-sm sm:text-base text-foreground">{step.title}</h3>
-                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">{step.description}</p>
-                          </div>
-                          <Button variant="outline" size="sm" className="text-xs sm:text-sm">
-                            {step.action}
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Upcoming Tasks */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base sm:text-lg lg:text-xl font-heading">Upcoming Tasks</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                      Stay on track with your wedding planning timeline
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 sm:space-y-4">
-                      {upcomingTasks.map((task) => (
-                        <div key={task.id} className="flex items-center justify-between p-3 sm:p-4 border rounded-lg">
-                          <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                            <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-medium text-xs sm:text-sm truncate">{task.task}</div>
-                              <div className="text-[10px] sm:text-xs text-muted-foreground">
-                                Due: {new Date(task.dueDate).toLocaleDateString()}
-                              </div>
-                            </div>
-                          </div>
-                          <Badge 
-                            className="text-[10px] sm:text-xs flex-shrink-0 ml-2"
-                            variant={task.priority === 'high' ? 'destructive' : task.priority === 'medium' ? 'default' : 'secondary'}
-                          >
-                            {task.priority}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <Button variant="outline" size="sm" className="w-full mt-3 sm:mt-4 text-xs sm:text-sm">
-                      View All Tasks
-                    </Button>
-                  </CardContent>
-                </Card>
               </TabsContent>
 
               {/* Other tabs content would go here */}
