@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { CreateEventModal } from '@/components/CreateEventModal';
 import { UserChat } from '@/components/chat/UserChat';
@@ -35,8 +35,10 @@ import { useAuth } from '@/hooks/useAuth';
 const UserDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('home');
   const [createEventModalOpen, setCreateEventModalOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [userEvents, setUserEvents] = useState<any[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [editingEvent, setEditingEvent] = useState<any>(null);
@@ -55,6 +57,19 @@ const UserDashboard = () => {
     notes: ''
   });
   const [guestSearchQuery, setGuestSearchQuery] = useState('');
+
+  // Handle URL params to auto-open add event modal
+  useEffect(() => {
+    const openAddEvent = searchParams.get('openAddEvent');
+    const packageParam = searchParams.get('package');
+    
+    if (openAddEvent === 'true') {
+      setSelectedPackage(packageParam);
+      setCreateEventModalOpen(true);
+      // Clear the URL params after opening the modal
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   // Check if user has admin/super_admin role and redirect
   useEffect(() => {
@@ -139,6 +154,7 @@ const UserDashboard = () => {
   const handleModalClose = () => {
     setCreateEventModalOpen(false);
     setEditingEvent(null);
+    setSelectedPackage(null);
   };
 
   const fetchGuests = async () => {
@@ -1008,6 +1024,7 @@ const UserDashboard = () => {
         onOpenChange={handleModalClose}
         onEventCreated={handleEventCreated}
         editingEvent={editingEvent}
+        initialPackage={selectedPackage}
       />
 
       {/* Add/Edit Guest Modal */}

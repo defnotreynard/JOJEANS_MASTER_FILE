@@ -16,6 +16,7 @@ interface CreateEventModalProps {
   onOpenChange: (open: boolean) => void;
   onEventCreated: () => void;
   editingEvent?: any;
+  initialPackage?: string | null;
 }
 
 const eventTypes = [
@@ -83,7 +84,7 @@ const venues = [
   { id: '7', name: "Jaines Bayawan", location: "Bayawan City", capacity: "180 guests", type: "Event Venue" }
 ];
 
-export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEvent }: CreateEventModalProps) {
+export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEvent, initialPackage }: CreateEventModalProps) {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
@@ -101,6 +102,16 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
     eventTime: '',
     dateFlexible: false
   });
+
+  // Set initial package when modal opens with a package selection
+  React.useEffect(() => {
+    if (open && initialPackage && !editingEvent) {
+      const pkg = packages.find(p => p.id === initialPackage);
+      if (pkg) {
+        setFormData(prev => ({ ...prev, selectedPackage: pkg }));
+      }
+    }
+  }, [open, initialPackage, editingEvent]);
 
   // Populate form when editing an event
   React.useEffect(() => {
