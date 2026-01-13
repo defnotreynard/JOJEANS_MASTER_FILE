@@ -38,13 +38,19 @@ const Services = () => {
       description: 'Professional event coordination to ensure every detail runs smoothly from start to finish.',
       fullDescription: 'Our experienced coordinators work with you from planning through execution, ensuring seamless management of all vendors, timelines, and event details. We handle the logistics so you can enjoy your special day.',
       features: ['Timeline Management', 'Vendor Coordination', 'Day-of Assistance', 'Problem Solving', 'Guest Management', 'Emergency Backup Plans'],
-      images: [coordinationImg, coordinationImg, coordinationImg, coordinationImg, coordinationImg],
+      images: [
+        'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800',
+        'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
+        'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800',
+        'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800',
+        'https://images.unsplash.com/photo-1559223607-a43c990c692c?w=800'
+      ],
       thumbnail: coordinationImg,
       contact: {
         phone: '+63 917 123 4567',
-        email: 'elite@events.com',
-        facebook: 'EliteEventsCoordination',
-        instagram: '@eliteeventsph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -57,13 +63,19 @@ const Services = () => {
       description: 'Transform your venue with stunning decorations and styling that match your vision.',
       fullDescription: 'Our design team creates breathtaking atmospheres with custom floral arrangements, elegant table settings, and complete venue transformations that reflect your unique style and personality.',
       features: ['Theme Development', 'Floral Arrangements', 'Table Settings', 'Venue Transformation', 'Color Coordination', 'Custom Centerpieces'],
-      images: [stylingImg, stylingImg, stylingImg, stylingImg, stylingImg, stylingImg],
+      images: [
+        'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800',
+        'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800',
+        'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
+        'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=800'
+      ],
       thumbnail: stylingImg,
       contact: {
         phone: '+63 917 234 5678',
-        email: 'anna@eleganttouch.com',
-        facebook: 'ElegantTouchDesigns',
-        instagram: '@eleganttouchph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -76,13 +88,18 @@ const Services = () => {
       description: 'Exquisite cuisine and professional service to delight your guests.',
       fullDescription: 'Experience culinary excellence with our custom menus crafted by award-winning chefs. We offer diverse cuisine options with professional service staff to create an unforgettable dining experience.',
       features: ['Custom Menus', 'Professional Staff', 'Buffet & Plated Options', 'Dietary Accommodations', 'Wine Pairing', 'Dessert Stations'],
-      images: [cateringImg, cateringImg, cateringImg, cateringImg],
+      images: [
+        'https://images.unsplash.com/photo-1555244162-803834f70033?w=800',
+        'https://images.unsplash.com/photo-1467453678174-768ec283a940?w=800',
+        'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800',
+        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800'
+      ],
       thumbnail: cateringImg,
       contact: {
         phone: '+63 917 345 6789',
-        email: 'chef@gourmetdelights.com',
-        facebook: 'GourmetDelightsCatering',
-        instagram: '@gourmetdelightsph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -95,13 +112,19 @@ const Services = () => {
       description: 'Capture every precious moment with professional photography and videography.',
       fullDescription: 'Our creative team uses state-of-the-art equipment to document your celebration in stunning detail. From candid moments to artistic portraits, we preserve your memories beautifully.',
       features: ['Full-Day Coverage', 'Highlight Reels', 'Digital Albums', 'Drone Photography', 'Same-Day Edit', 'Online Gallery'],
-      images: [photoVideoImg, photoVideoImg, photoVideoImg, photoVideoImg, photoVideoImg],
+      images: [
+        'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=800',
+        'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=800',
+        'https://images.unsplash.com/photo-1519741497674-611481863552?w=800',
+        'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800',
+        'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800'
+      ],
       thumbnail: photoVideoImg,
       contact: {
         phone: '+63 917 456 7890',
-        email: 'john@momentsstudio.com',
-        facebook: 'MomentsPhotoStudio',
-        instagram: '@momentsstudioph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -114,13 +137,18 @@ const Services = () => {
       description: 'Professional audio-visual setup to create the perfect ambiance.',
       fullDescription: 'Transform your event with premium sound systems, dynamic lighting designs, and professional technical support. We create immersive experiences that enhance every moment.',
       features: ['Sound Systems', 'Stage Lighting', 'Ambient Lighting', 'Technical Support', 'DJ Services', 'Live Band Setup'],
-      images: [soundsLightsImg, soundsLightsImg, soundsLightsImg, soundsLightsImg],
+      images: [
+        'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800',
+        'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800',
+        'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=800',
+        'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800'
+      ],
       thumbnail: soundsLightsImg,
       contact: {
         phone: '+63 917 567 8901',
-        email: 'mike@soundwave.com',
-        facebook: 'SoundWaveProductions',
-        instagram: '@soundwaveph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -133,13 +161,19 @@ const Services = () => {
       description: 'Delicious custom cakes and appetizers for your celebration.',
       fullDescription: 'Indulge in artisan cakes and gourmet appetizers crafted by our talented pastry chefs and culinary team. Every bite is a celebration of flavor and artistry.',
       features: ['Custom Cake Design', 'Finger Foods', 'Dessert Tables', 'Themed Treats', 'Tasting Sessions', 'Dietary Options'],
-      images: [cakesImg, cakesImg, cakesImg, cakesImg, cakesImg],
+      images: [
+        'https://images.unsplash.com/photo-1535254973040-607b474cb50d?w=800',
+        'https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?w=800',
+        'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800',
+        'https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=800',
+        'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800'
+      ],
       thumbnail: cakesImg,
       contact: {
         phone: '+63 917 678 9012',
-        email: 'sarah@sweetdreams.com',
-        facebook: 'SweetDreamsBakery',
-        instagram: '@sweetdreamsph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -152,13 +186,18 @@ const Services = () => {
       description: 'Beautiful invitations and memorable giveaways for your guests.',
       fullDescription: 'Make a lasting impression with custom-designed invitations and thoughtful giveaways. Our creative team brings your vision to life with elegant designs and quality materials.',
       features: ['Custom Designs', 'Digital Invites', 'Wedding Favors', 'Personalized Gifts', 'Save the Dates', 'Thank You Cards'],
-      images: [invitationsImg, invitationsImg, invitationsImg, invitationsImg],
+      images: [
+        'https://images.unsplash.com/photo-1544148103-0773bf10d330?w=800',
+        'https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=800',
+        'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=800',
+        'https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=800'
+      ],
       thumbnail: invitationsImg,
       contact: {
         phone: '+63 917 789 0123',
-        email: 'lisa@paperink.com',
-        facebook: 'PaperInkDesigns',
-        instagram: '@paperinkph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -171,13 +210,19 @@ const Services = () => {
       description: 'Professional hair, makeup, and hosting services for your special day.',
       fullDescription: 'Look and feel your absolute best with our expert beauty team, complemented by professional hosts who ensure smooth program flow and engaging guest experiences.',
       features: ['Bridal Makeup', 'Hairstyling', 'Professional Hosts', 'Touch-up Services', 'Trial Sessions', 'Entourage Services'],
-      images: [hmuaImg, hmuaImg, hmuaImg, hmuaImg, hmuaImg],
+      images: [
+        'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800',
+        'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800',
+        'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800',
+        'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800',
+        'https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=800'
+      ],
       thumbnail: hmuaImg,
       contact: {
         phone: '+63 917 890 1234',
-        email: 'patricia@glamour.com',
-        facebook: 'GlamourBeautyStudio',
-        instagram: '@glamourstudioph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -190,13 +235,18 @@ const Services = () => {
       description: 'Elegant wedding attire and stunning floral arrangements.',
       fullDescription: 'Discover exquisite wedding attire and breathtaking bouquets curated by our expert stylists and floral designers to make you look and feel stunning.',
       features: ['Bridal Gowns', 'Groom Suits', 'Bridal Bouquets', 'Entourage Attire', 'Accessories', 'Boutonnières'],
-      images: [attiresImg, attiresImg, attiresImg, attiresImg],
+      images: [
+        'https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=800',
+        'https://images.unsplash.com/photo-1550005809-91ad75fb315f?w=800',
+        'https://images.unsplash.com/photo-1522057384400-681b421cfebc?w=800',
+        'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800'
+      ],
       thumbnail: attiresImg,
       contact: {
         phone: '+63 917 901 2345',
-        email: 'sophia@bridalcouture.com',
-        facebook: 'BridalCoutureBlooms',
-        instagram: '@bridalcoutureph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -209,13 +259,18 @@ const Services = () => {
       description: 'Luxury transportation for the bride, groom, and wedding party.',
       fullDescription: 'Arrive in style with our fleet of luxury vehicles, complete with professional chauffeurs and elegant decorations to make your entrance unforgettable.',
       features: ['Luxury Vehicles', 'Professional Drivers', 'Decorated Cars', 'Airport Transfers', 'Multiple Vehicle Packages', 'Red Carpet Service'],
-      images: [bridalCarImg, bridalCarImg, bridalCarImg, bridalCarImg],
+      images: [
+        'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800',
+        'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800',
+        'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800',
+        'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800'
+      ],
       thumbnail: bridalCarImg,
       contact: {
         phone: '+63 917 012 3456',
-        email: 'carlos@premierluxury.com',
-        facebook: 'PremierLuxuryCars',
-        instagram: '@premierluxuryph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -228,13 +283,18 @@ const Services = () => {
       description: 'Dramatic ceiling installations and drapery to elevate your venue.',
       fullDescription: 'Transform ordinary spaces into extraordinary venues with our custom ceiling treatments, elegant drapery, and integrated lighting designs.',
       features: ['Fabric Draping', 'Ceiling Decor', 'Lighting Integration', 'Custom Designs', 'Floral Installations', 'Chandelier Rentals'],
-      images: [ceilingImg, ceilingImg, ceilingImg, ceilingImg],
+      images: [
+        'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800',
+        'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800',
+        'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800',
+        'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800'
+      ],
       thumbnail: ceilingImg,
       contact: {
         phone: '+63 917 123 4567',
-        email: 'mark@skyhigh.com',
-        facebook: 'SkyHighDecor',
-        instagram: '@skyhighdecorph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -247,13 +307,18 @@ const Services = () => {
       description: 'High-quality LED displays for presentations and entertainment.',
       fullDescription: 'Create stunning visual experiences with our premium LED wall solutions, perfect for displaying photos, videos, and live event coverage in crystal-clear quality.',
       features: ['Large Format Displays', 'Custom Content', 'Technical Support', 'Indoor/Outdoor Options', 'Live Streaming', 'Interactive Displays'],
-      images: [ledWallImg, ledWallImg, ledWallImg, ledWallImg],
+      images: [
+        'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800',
+        'https://images.unsplash.com/photo-1561489413-985b06da5bee?w=800',
+        'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800',
+        'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800'
+      ],
       thumbnail: ledWallImg,
       contact: {
         phone: '+63 917 234 5678',
-        email: 'ramon@digitalvision.com',
-        facebook: 'DigitalVisionSolutions',
-        instagram: '@digitalvisionph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -266,13 +331,18 @@ const Services = () => {
       description: 'Grand entrance tunnels to make a memorable first impression.',
       fullDescription: 'Make a show-stopping entrance with our custom-designed tunnels featuring dramatic lighting, lush florals, and elegant architectural elements.',
       features: ['Custom Designs', 'Lighting Effects', 'Floral Accents', 'Photo Opportunities', 'Multiple Styles', 'Weather Protection'],
-      images: [entranceImg, entranceImg, entranceImg, entranceImg],
+      images: [
+        'https://images.unsplash.com/photo-1519741497674-611481863552?w=800',
+        'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800',
+        'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800',
+        'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=800'
+      ],
       thumbnail: entranceImg,
       contact: {
         phone: '+63 917 345 6789',
-        email: 'elena@grandentrances.com',
-        facebook: 'GrandEntrancesPH',
-        instagram: '@grandentrancesph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     },
     {
@@ -285,13 +355,18 @@ const Services = () => {
       description: 'Stunning illuminated glass dance floors for an unforgettable experience.',
       fullDescription: 'Dance the night away on our spectacular LED-lit glass floors. Safe, stunning, and customizable to match your event theme and colors.',
       features: ['LED Lighting', 'Custom Patterns', 'Safe & Sturdy', 'Multiple Sizes', 'Color Programming', 'Professional Installation'],
-      images: [danceFloorImg, danceFloorImg, danceFloorImg, danceFloorImg],
+      images: [
+        'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=800',
+        'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800',
+        'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800',
+        'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800'
+      ],
       thumbnail: danceFloorImg,
       contact: {
         phone: '+63 917 456 7890',
-        email: 'james@dancefloormagic.com',
-        facebook: 'DanceFloorMagic',
-        instagram: '@dancefloormagicph'
+        email: 'admin@jojeans.com',
+        facebook: 'jojeansdigital',
+        instagram: '@jojeansdigital'
       }
     }
   ];
@@ -447,11 +522,12 @@ const Services = () => {
                     {selectedService.images.map((image: string, index: number) => (
                       <CarouselItem key={index}>
                         <div className="relative h-48 md:h-80 rounded-xl overflow-hidden bg-gradient-to-br from-wedding-cream to-wedding-sage">
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            {React.createElement(selectedService.icon, { 
-                              className: "h-20 md:h-32 w-20 md:w-32 text-white/30" 
-                            })}
-                          </div>
+                          <img 
+                            src={image} 
+                            alt={`${selectedService.title} ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/10" />
                         </div>
                       </CarouselItem>
                     ))}
@@ -521,15 +597,6 @@ const Services = () => {
                   </div>
                 </div>
 
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-2 md:gap-3 pt-3 md:pt-4">
-                  <Button size="sm" className="flex-1 text-sm md:text-base">
-                    Book Now
-                  </Button>
-                  <Button size="sm" variant="outline" className="flex-1 text-sm md:text-base">
-                    Inquire
-                  </Button>
-                </div>
               </div>
             </>
           )}
