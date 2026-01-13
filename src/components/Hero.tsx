@@ -110,7 +110,7 @@ const Hero = () => {
                     <div className="text-sm text-muted-foreground">Guests Confirmed</div>
                   </div>
                   <div className="bg-wedding-gold/20 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-wedding-charcoal">$85K</div>
+                    <div className="text-2xl font-bold text-wedding-charcoal">₱85K</div>
                     <div className="text-sm text-muted-foreground">Budget Allocated</div>
                   </div>
                 </div>
