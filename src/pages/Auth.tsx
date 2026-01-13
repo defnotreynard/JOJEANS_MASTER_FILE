@@ -54,22 +54,55 @@ export default function Auth() {
   });
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Only redirect on initial load, not on sign_in event
-      // (handleSignIn handles that directly)
-      if (event === 'INITIAL_SESSION' && session?.user) {
-        checkRoleAndRedirect(session.user.id);
-      }
-    });
+    const handleOAuthCallback = async () => {
+      // Check if we're returning from OAuth (tokens in hash)
+      if (window.location.hash) {
+        console.log("🔐 Processing OAuth callback...");
+        
+        // Supabase SDK automatically processes hash and stores session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("❌ OAuth callback error:", error);
+          toast({
+            title: "Authentication Error",
+            description: "Failed to process OAuth login. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        checkRoleAndRedirect(session.user.id);
+        if (session?.user) {
+          console.log("✅ OAuth session established for user:", session.user.id);
+          // Clear hash from URL for security (don't expose tokens)
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          // Redirect based on role
+          checkRoleAndRedirect(session.user.id);
+          return;
+        }
       }
-    });
 
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+      // Normal auth state change listener for non-OAuth flows
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        // Only redirect on initial load, not on sign_in event
+        // (handleSignIn handles that directly)
+        if (event === 'INITIAL_SESSION' && session?.user) {
+          checkRoleAndRedirect(session.user.id);
+        }
+      });
+
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user && !window.location.hash) {
+          checkRoleAndRedirect(session.user.id);
+        }
+      });
+
+      return () => subscription.unsubscribe();
+    };
+
+    handleOAuthCallback();
+  }, [navigate, toast]);
 
   const checkRoleAndRedirect = async (userId: string) => {
   try {
