@@ -540,10 +540,6 @@ export function GalleryManagement() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Gallery Management</h1>
-          <p className="text-muted-foreground">Manage event photos and portfolio items</p>
-        </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}>
             {viewMode === "grid" ? <List className="h-4 w-4 text-foreground" /> : <Grid3X3 className="h-4 w-4 text-foreground" />}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Check, Trash2, ExternalLink } from "lucide-react";
+import { Bell, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,13 +7,12 @@ import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { AdminNotificationDetailModal } from "./AdminNotificationDetailModal";
 
 interface Notification {
   id: string;
@@ -32,6 +31,8 @@ export function NotificationsDropdown() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -259,9 +260,17 @@ export function NotificationsDropdown() {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 hover:bg-accent/50 transition-colors ${
+                  className={`p-3 hover:bg-accent/50 transition-colors cursor-pointer ${
                     !notification.read ? "bg-accent/20" : ""
                   }`}
+                  onClick={() => {
+                    setSelectedNotification(notification);
+                    setDetailModalOpen(true);
+                    setOpen(false);
+                    if (!notification.read) {
+                      markAsRead(notification.id);
+                    }
+                  }}
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-2xl flex-shrink-0">
@@ -281,17 +290,7 @@ export function NotificationsDropdown() {
                         <span className="text-xs text-muted-foreground">
                           {formatTime(notification.created_at)}
                         </span>
-                        <div className="flex gap-1">
-                          {notification.link && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2"
-                              onClick={() => window.open(notification.link, "_blank")}
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </Button>
-                          )}
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                           {!notification.read && (
                             <Button
                               variant="ghost"
@@ -320,6 +319,12 @@ export function NotificationsDropdown() {
           )}
         </ScrollArea>
       </DropdownMenuContent>
+
+      <AdminNotificationDetailModal
+        notification={selectedNotification}
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+      />
     </DropdownMenu>
   );
 }

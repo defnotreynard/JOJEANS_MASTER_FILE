@@ -71,6 +71,21 @@ const UserDashboard = () => {
     }
   }, [searchParams, setSearchParams]);
 
+  // Listen for notification tab switch events
+  useEffect(() => {
+    const handleTabSwitch = (event: CustomEvent<string>) => {
+      const tab = event.detail;
+      if (['home', 'events', 'guests', 'messages', 'bookings', 'settings'].includes(tab)) {
+        setActiveTab(tab);
+      }
+    };
+
+    window.addEventListener('switch-dashboard-tab', handleTabSwitch as EventListener);
+    return () => {
+      window.removeEventListener('switch-dashboard-tab', handleTabSwitch as EventListener);
+    };
+  }, []);
+
   // Check if user has admin/super_admin role and redirect
   useEffect(() => {
     const checkRoleAndRedirect = async () => {
@@ -454,7 +469,7 @@ const UserDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
               <div>
                 <h1 className="text-xl sm:text-2xl lg:text-4xl font-heading font-bold text-foreground">
-                  Dashboard
+                  ashboard
                 </h1>
                 <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
                   Plan, organize, and track your perfect day

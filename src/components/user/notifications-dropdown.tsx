@@ -13,8 +13,8 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
-import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth"
+import { NotificationDetailModal } from "./NotificationDetailModal"
 
 interface Notification {
   id: string
@@ -30,7 +30,8 @@ export function UserNotificationsDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
-  const navigate = useNavigate()
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
   const { user } = useAuth()
 
   useEffect(() => {
@@ -141,9 +142,10 @@ export function UserNotificationsDropdown() {
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id)
     setOpen(false)
-    if (notification.link) {
-      navigate(notification.link)
-    }
+    
+    // Open the notification detail modal instead of navigating
+    setSelectedNotification(notification)
+    setDetailModalOpen(true)
   }
 
   const getNotificationIcon = (type: string) => {
@@ -160,6 +162,7 @@ export function UserNotificationsDropdown() {
   }
 
   return (
+    <>
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
@@ -237,5 +240,13 @@ export function UserNotificationsDropdown() {
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+
+    {/* Notification Detail Modal */}
+    <NotificationDetailModal
+      notification={selectedNotification}
+      open={detailModalOpen}
+      onOpenChange={setDetailModalOpen}
+    />
+    </>
   )
 }
