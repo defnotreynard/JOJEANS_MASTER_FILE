@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_chat_users: {
+        Row: {
+          blocked_by: string
+          blocker_type: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          blocked_by: string
+          blocker_type?: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          blocked_by?: string
+          blocker_type?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           budget_amount: number | null

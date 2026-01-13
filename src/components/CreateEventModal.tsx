@@ -603,6 +603,7 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated, editingEv
               <Input
                 id="date"
                 type="date"
+                min={new Date().toISOString().split('T')[0]}
                 value={formData.eventDate}
                 onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
               />
