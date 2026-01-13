@@ -40,7 +40,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending confirmation email to ${clientEmail} for booking ${referenceId}`);
 
     // Link to the user dashboard on the app
-    const dashboardLink = "https://www.jojeansevents.sbs/dashboard";
+    const dashboardLink = "https://www.jojeansevents.sbs/";
 
     const emailResponse = await resend.emails.send({
       from: "Jojean's Events <bookings@jojeansevents.sbs>",
