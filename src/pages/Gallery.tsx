@@ -229,14 +229,6 @@ const Gallery = () => {
               </div>
             )}
 
-            {/* Load More */}
-            {filteredItems.length > 0 && (
-              <div className="text-center mt-12 animate-fade-in-up">
-                <Button variant="outline" size="lg" className="hover:bg-primary hover:text-primary-foreground hover:scale-105 transition-all">
-                  Load More Events
-                </Button>
-              </div>
-            )}
           </div>
         </section>
       </main>
