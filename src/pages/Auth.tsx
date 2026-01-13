@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Phone, User, Lock, Calendar } from "lucide-react";
+import { ForgotPasswordModal } from "@/components/ForgotPasswordModal";
 
 const signUpSchema = z.object({
   fullName: z.string().trim().min(2, "Full name must be at least 2 characters").max(100, "Full name must be less than 100 characters"),
@@ -30,6 +31,7 @@ type SignInFormData = z.infer<typeof signInSchema>;
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -394,7 +396,17 @@ export default function Auth() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Password</FormLabel>
+                          <Button
+                            type="button"
+                            variant="link"
+                            className="px-0 h-auto text-xs text-muted-foreground hover:text-primary"
+                            onClick={() => setShowForgotPassword(true)}
+                          >
+                            Forgot password?
+                          </Button>
+                        </div>
                         <FormControl>
                           <div className="relative">
                             <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -428,6 +440,13 @@ export default function Auth() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Forgot Password Modal */}
+        <ForgotPasswordModal
+          isOpen={showForgotPassword}
+          onClose={() => setShowForgotPassword(false)}
+          onBackToSignIn={() => setShowForgotPassword(false)}
+        />
       </div>
     </div>
   );

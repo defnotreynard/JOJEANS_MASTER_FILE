@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Phone, User, Lock, Calendar } from "lucide-react";
+import { ForgotPasswordModal } from "./ForgotPasswordModal";
 
 const signUpSchema = z.object({
   fullName: z.string().trim().min(2, "Full name must be at least 2 characters").max(100, "Full name must be less than 100 characters"),
@@ -34,11 +35,13 @@ interface AuthModalProps {
 
 export function AuthModal({ isOpen, onClose, defaultMode = "signin" }: AuthModalProps) {
   const [isSignUp, setIsSignUp] = useState(defaultMode === "signup");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
   // Reset form mode when modal opens with different defaultMode
   React.useEffect(() => {
     if (isOpen) {
       setIsSignUp(defaultMode === "signup");
+      setShowForgotPassword(false);
     }
   }, [isOpen, defaultMode]);
   const [loading, setLoading] = useState(false);
@@ -351,24 +354,51 @@ export function AuthModal({ isOpen, onClose, defaultMode = "signin" }: AuthModal
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
+
+                <div className="text-center space-y-1">
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-sm text-muted-foreground hover:text-primary p-0 h-auto"
+                    onClick={() => setShowForgotPassword(true)}
+                  >
+                    Forgot password?
+                  </Button>
+                  <div>
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={() => setIsSignUp(true)}
+                      className="text-sm text-muted-foreground hover:text-primary p-0 h-auto"
+                    >
+                      Don't have an account? Sign up
+                    </Button>
+                  </div>
+                </div>
               </form>
             </Form>
           )}
 
-          <div className="text-center">
-            <Button
-              type="button"
-              variant="link"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-muted-foreground hover:text-primary"
-            >
-              {isSignUp 
-                ? "Already have an account? Sign in" 
-                : "Don't have an account? Sign up"
-              }
-            </Button>
-          </div>
+          {isSignUp && (
+            <div className="text-center">
+              <Button
+                type="button"
+                variant="link"
+                onClick={() => setIsSignUp(false)}
+                className="text-sm text-muted-foreground hover:text-primary"
+              >
+                Already have an account? Sign in
+              </Button>
+            </div>
+          )}
         </div>
+
+        {/* Forgot Password Modal */}
+        <ForgotPasswordModal
+          isOpen={showForgotPassword}
+          onClose={() => setShowForgotPassword(false)}
+          onBackToSignIn={() => setShowForgotPassword(false)}
+        />
       </DialogContent>
     </Dialog>
   );

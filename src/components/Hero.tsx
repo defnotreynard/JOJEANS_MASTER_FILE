@@ -42,15 +42,13 @@ const Hero = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <Link to="/auth" className="w-full sm:w-auto">
-                <Button 
-                  className="bg-white text-primary hover:bg-white/90 shadow-glow group w-full h-10 sm:h-11 text-sm sm:text-base px-4 sm:px-8"
-                >
-                  <span className="hidden sm:inline">Start Planning Your Event</span>
-                  <span className="sm:hidden">Start Planning</span>
-                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+              <Button 
+                className="bg-white text-primary hover:bg-white/90 shadow-glow group w-full sm:w-auto h-10 sm:h-11 text-sm sm:text-base px-4 sm:px-8"
+              >
+                <span className="hidden sm:inline">Start Planning Your Event</span>
+                <span className="sm:hidden">Start Planning</span>
+                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
               
               <Link to="/packages" className="w-full sm:w-auto">
                 <Button 
