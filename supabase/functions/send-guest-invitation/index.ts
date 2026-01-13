@@ -37,8 +37,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending invitation to:", guestEmail);
 
-    const confirmUrl = `https://ivgvgvhhkdcjozayahcr.supabase.co/functions/v1/confirm-guest-invitation?guestId=${guestId}&status=attending`;
-    const declineUrl = `https://ivgvgvhhkdcjozayahcr.supabase.co/functions/v1/confirm-guest-invitation?guestId=${guestId}&status=declined`;
+    // Use the app URL for RSVP confirmation (in-app page)
+    const appBaseUrl = "https://jojeansevents.sbs";
+    const confirmUrl = `${appBaseUrl}/rsvp-confirm?guestId=${guestId}&status=attending`;
+    const declineUrl = `${appBaseUrl}/rsvp-confirm?guestId=${guestId}&status=declined`;
 
     const emailResponse = await resend.emails.send({
       from: "Jojean's Events <onboarding@resend.dev>",

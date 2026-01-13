@@ -39,8 +39,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending confirmation email to ${clientEmail} for booking ${referenceId}`);
 
-    // Create a scheduling link (you can customize this with your actual scheduling system)
-    const schedulingLink = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '')}/userdashboard`;
+    // Link to the user dashboard on the app
+    const dashboardLink = "https://jojeansevents.sbs/dashboard";
 
     const emailResponse = await resend.emails.send({
       from: "Jojean's Events <bookings@jojeansevents.sbs>",
@@ -351,7 +351,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <p style="margin-top: 16px;">We'll confirm the meeting details as soon as we receive your response.</p>
                 
                 <center>
-                  <a href="${schedulingLink}" class="cta-button">View Your Dashboard</a>
+                  <a href="${dashboardLink}" class="cta-button">View Your Dashboard</a>
                 </center>
               </div>
               
