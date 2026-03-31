@@ -223,13 +223,79 @@ export const UserChat = () => {
     );
   }
 
+  const handleGreetingClick = (action: string) => {
+    const messages: { [key: string]: string } = {
+      inquire: "I want to inquire",
+      report: "Report an issue"
+    };
+    
+    if (messages[action]) {
+      setNewMessage(messages[action]);
+      // Auto-send after a brief delay
+      setTimeout(() => {
+        const userMsg = { sender_type: 'user' as const, message: messages[action] };
+        const updatedHistory = [...aiHistory, userMsg];
+        setAiHistory(updatedHistory);
+        setNewMessage("");
+        
+        (async () => {
+          setLoading(true);
+          try {
+            const { data, error } = await supabase.functions.invoke('chat-ai', {
+              body: {
+                message: messages[action],
+                conversationHistory: updatedHistory.slice(-10),
+              },
+            });
+            if (error) throw error;
+            const aiMsg = { sender_type: 'ai' as const, message: data.message };
+            setAiHistory(prev => [...prev, aiMsg]);
+          } catch (err) {
+            console.error('AI chat error:', err);
+            const errorMsg = { sender_type: 'ai' as const, message: 'Sorry, I encountered an error. Please try again or talk to an admin.' };
+            setAiHistory(prev => [...prev, errorMsg]);
+            toast({
+              title: "Error",
+              description: "Failed to get AI response",
+              variant: "destructive",
+            });
+          }
+          setLoading(false);
+        })();
+      }, 100);
+    }
+  };
+
   const renderMessages = () => {
     if (chatMode === 'ai') {
       if (aiHistory.length === 0) {
         return (
-          <div className="flex flex-col items-center justify-center h-full text-center p-4 space-y-2">
+          <div className="flex flex-col items-center justify-center h-full text-center p-4 space-y-4">
             <Bot className="h-10 w-10 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Hi! I'm your AI assistant. Ask me anything about events, packages, or services.</p>
+            <div className="space-y-3 w-full">
+              <div className="bg-muted rounded-lg px-4 py-3">
+                <p className="text-sm font-medium">Hi there! How can I help you?</p>
+              </div>
+              <p className="text-xs text-muted-foreground">We are here to help you</p>
+              <div className="flex gap-2 justify-center pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => handleGreetingClick('inquire')}
+                >
+                  I want to inquire
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => handleGreetingClick('report')}
+                >
+                  Report an issue
+                </Button>
+              </div>
+            </div>
           </div>
         );
       }

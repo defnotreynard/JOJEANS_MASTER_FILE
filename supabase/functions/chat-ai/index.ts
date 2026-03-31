@@ -19,7 +19,7 @@ serve(async (req) => {
       throw new Error('GROQ_API_KEY is not configured');
     }
 
-    const systemPrompt = `You are a helpful event planning assistant for an event management company. Today's date is ${today}.
+    const systemPrompt = `You are a helpful event planning assistant for Jojeans Events. Today's date is ${today}.
 
 === WEDDING PACKAGES ===
 
