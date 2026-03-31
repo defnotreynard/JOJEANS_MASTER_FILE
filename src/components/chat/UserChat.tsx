@@ -5,9 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MessageCircle, X, Bot, UserRound, Loader2 } from "lucide-react";
+import { Send, MessageCircle, X, Bot, UserRound, Loader2, MoreVertical, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Message {
   id: string;
@@ -30,6 +45,7 @@ export const UserChat = () => {
   const [chatMode, setChatMode] = useState<ChatMode>('ai');
   const [aiHistory, setAiHistory] = useState<{ sender_type: string; message: string }[]>([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,7 +56,7 @@ export const UserChat = () => {
 
   useEffect(() => {
     if (user) {
-      if (isOpen && chatMode === 'admin') {
+      if (isOpen) {
         loadMessages();
         const cleanup = subscribeToMessages();
         return cleanup;
@@ -84,7 +100,21 @@ export const UserChat = () => {
       return;
     }
 
-    setMessages((data || []) as Message[]);
+    const allMessages = (data || []) as Message[];
+    setMessages(allMessages);
+    
+    // Load AI messages into aiHistory for AI chat mode
+    const aiMessages = allMessages
+      .filter(msg => msg.sender_type === 'user' || msg.sender_type === 'ai')
+      .map(msg => ({
+        sender_type: msg.sender_type,
+        message: msg.message
+      }));
+    
+    if (aiMessages.length > 0) {
+      setAiHistory(aiMessages);
+    }
+    
     markMessagesAsRead();
   };
 
@@ -128,29 +158,57 @@ export const UserChat = () => {
   };
 
   const sendAiMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !user) return;
 
-    const userMsg = { sender_type: 'user', message: newMessage.trim() };
+    const userMsg = { sender_type: 'user' as const, message: newMessage.trim() };
     const updatedHistory = [...aiHistory, userMsg];
     setAiHistory(updatedHistory);
     setNewMessage("");
     setLoading(true);
 
+    // Save user message to database
+    const { error: userMsgError } = await supabase
+      .from('messages')
+      .insert({
+        user_id: user.id,
+        sender_id: user.id,
+        sender_type: 'user',
+        message: userMsg.message,
+      });
+
+    if (userMsgError) {
+      console.error('Error saving user message:', userMsgError);
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('chat-ai', {
         body: {
           message: userMsg.message,
-          conversationHistory: updatedHistory.slice(-10), // Last 10 messages for context
+          conversationHistory: updatedHistory.slice(-10),
         },
       });
 
       if (error) throw error;
 
-      const aiMsg = { sender_type: 'ai', message: data.message };
+      const aiMsg = { sender_type: 'ai' as const, message: data.message };
       setAiHistory(prev => [...prev, aiMsg]);
+      
+      // Save AI message to database
+      const { error: aiMsgError } = await supabase
+        .from('messages')
+        .insert({
+          user_id: user.id,
+          sender_id: null,
+          sender_type: 'ai',
+          message: data.message,
+        });
+
+      if (aiMsgError) {
+        console.error('Error saving AI message:', aiMsgError);
+      }
     } catch (err) {
       console.error('AI chat error:', err);
-      const errorMsg = { sender_type: 'ai', message: 'Sorry, I encountered an error. Please try again or talk to an admin.' };
+      const errorMsg = { sender_type: 'ai' as const, message: 'Sorry, I encountered an error. Please try again or talk to an admin.' };
       setAiHistory(prev => [...prev, errorMsg]);
       toast({
         title: "Error",
@@ -200,6 +258,35 @@ export const UserChat = () => {
     loadMessages();
   };
 
+  const deleteConversation = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setMessages([]);
+      setAiHistory([]);
+      setShowDeleteConfirm(false);
+      
+      toast({
+        title: "Success",
+        description: "Conversation deleted successfully",
+      });
+    } catch (err) {
+      console.error('Error deleting conversation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!isOpen) {
     return (
       <Button
@@ -229,39 +316,65 @@ export const UserChat = () => {
       report: "Report an issue"
     };
     
-    if (messages[action]) {
+    if (messages[action] && user) {
       setNewMessage(messages[action]);
       // Auto-send after a brief delay
-      setTimeout(() => {
+      setTimeout(async () => {
         const userMsg = { sender_type: 'user' as const, message: messages[action] };
         const updatedHistory = [...aiHistory, userMsg];
         setAiHistory(updatedHistory);
         setNewMessage("");
         
-        (async () => {
-          setLoading(true);
-          try {
-            const { data, error } = await supabase.functions.invoke('chat-ai', {
-              body: {
-                message: messages[action],
-                conversationHistory: updatedHistory.slice(-10),
-              },
+        // Save user message to database
+        const { error: userMsgError } = await supabase
+          .from('messages')
+          .insert({
+            user_id: user.id,
+            sender_id: user.id,
+            sender_type: 'user',
+            message: userMsg.message,
+          });
+
+        if (userMsgError) {
+          console.error('Error saving user message:', userMsgError);
+        }
+        
+        setLoading(true);
+        try {
+          const { data, error } = await supabase.functions.invoke('chat-ai', {
+            body: {
+              message: messages[action],
+              conversationHistory: updatedHistory.slice(-10),
+            },
+          });
+          if (error) throw error;
+          const aiMsg = { sender_type: 'ai' as const, message: data.message };
+          setAiHistory(prev => [...prev, aiMsg]);
+          
+          // Save AI message to database
+          const { error: aiMsgError } = await supabase
+            .from('messages')
+            .insert({
+              user_id: user.id,
+              sender_id: null,
+              sender_type: 'ai',
+              message: data.message,
             });
-            if (error) throw error;
-            const aiMsg = { sender_type: 'ai' as const, message: data.message };
-            setAiHistory(prev => [...prev, aiMsg]);
-          } catch (err) {
-            console.error('AI chat error:', err);
-            const errorMsg = { sender_type: 'ai' as const, message: 'Sorry, I encountered an error. Please try again or talk to an admin.' };
-            setAiHistory(prev => [...prev, errorMsg]);
-            toast({
-              title: "Error",
-              description: "Failed to get AI response",
-              variant: "destructive",
-            });
+
+          if (aiMsgError) {
+            console.error('Error saving AI message:', aiMsgError);
           }
-          setLoading(false);
-        })();
+        } catch (err) {
+          console.error('AI chat error:', err);
+          const errorMsg = { sender_type: 'ai' as const, message: 'Sorry, I encountered an error. Please try again or talk to an admin.' };
+          setAiHistory(prev => [...prev, errorMsg]);
+          toast({
+            title: "Error",
+            description: "Failed to get AI response",
+            variant: "destructive",
+          });
+        }
+        setLoading(false);
       }, 100);
     }
   };
@@ -381,13 +494,35 @@ export const UserChat = () => {
               </>
             )}
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="top" sideOffset={8} className="z-[10000]">
+                <DropdownMenuItem 
+                  className="text-destructive cursor-pointer"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Conversation
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
 
         {/* Mode switcher */}
@@ -449,6 +584,23 @@ export const UserChat = () => {
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent className="top-1/4 translate-y-0 max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete your entire conversation history? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={deleteConversation}>
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
