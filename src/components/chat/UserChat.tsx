@@ -88,7 +88,22 @@ export const UserChat = () => {
     }
   }, [messages, aiHistory]);
 
+  // Sync AI history whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      const aiMessages = messages
+        .filter(msg => msg.sender_type === 'user' || msg.sender_type === 'ai')
+        .map(msg => ({
+          sender_type: msg.sender_type,
+          message: msg.message
+        }));
+      setAiHistory(aiMessages);
+    }
+  }, [messages]);
+
   const loadMessages = async () => {
+    if (!user) return;
+    
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -111,9 +126,8 @@ export const UserChat = () => {
         message: msg.message
       }));
     
-    if (aiMessages.length > 0) {
-      setAiHistory(aiMessages);
-    }
+    // Always set aiHistory when loading messages
+    setAiHistory(aiMessages);
     
     markMessagesAsRead();
   };
@@ -253,9 +267,9 @@ export const UserChat = () => {
     }
   };
 
-  const switchToAdmin = () => {
+  const switchToAdmin = async () => {
     setChatMode('admin');
-    loadMessages();
+    await loadMessages();
   };
 
   const deleteConversation = async () => {

@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 interface Message {
   id: string;
   user_id: string;
-  sender_type: 'user' | 'admin';
+  sender_type: 'user' | 'admin' | 'ai';
   message: string;
   created_at: string;
   read: boolean;
