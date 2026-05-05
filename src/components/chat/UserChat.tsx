@@ -43,12 +43,17 @@ export const UserChat = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState<"admin" | "ai">("ai");
   const [aiMessages, setAiMessages] = useState<{ id: string; role: "user" | "ai"; message: string }[]>([
     { id: "welcome", role: "ai", message: "Hi! I'm Jojeans AI Assistant ✨ Pick a suggestion below or ask me anything!" },
   ]);
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+=======
+  // Track whether aiHistory has been seeded from DB already
+  const aiHistorySeeded = useRef(false);
+>>>>>>> 044db0f9679515332bc7901f8254c423309f085a
   const scrollRef = useRef<HTMLDivElement>(null);
   const aiScrollRef = useRef<HTMLDivElement>(null);
 
@@ -90,11 +95,19 @@ export const UserChat = () => {
         viewport.scrollTop = viewport.scrollHeight;
       }
     }
+<<<<<<< HEAD
   }, [messages]);
+=======
+  }, [messages, aiHistory]);
+
+  // ✅ REMOVED: the useEffect that was syncing aiHistory from messages on every change.
+  // That was the root cause — it overwrote the live AI conversation every time
+  // messages state updated (e.g. when switching tabs and calling loadMessages again).
+>>>>>>> 044db0f9679515332bc7901f8254c423309f085a
 
   const loadMessages = async () => {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -108,7 +121,25 @@ export const UserChat = () => {
 
     const allMessages = (data || []) as Message[];
     setMessages(allMessages);
+<<<<<<< HEAD
     
+=======
+
+    // ✅ FIX: Only seed aiHistory from DB on the very first load.
+    // After that, aiHistory is managed purely in memory so switching tabs
+    // (AI → Admin → AI) never wipes out the ongoing AI conversation.
+    if (!aiHistorySeeded.current) {
+      const aiMessages = allMessages
+        .filter(msg => msg.sender_type === 'user' || msg.sender_type === 'ai')
+        .map(msg => ({
+          sender_type: msg.sender_type,
+          message: msg.message,
+        }));
+      setAiHistory(aiMessages);
+      aiHistorySeeded.current = true;
+    }
+
+>>>>>>> 044db0f9679515332bc7901f8254c423309f085a
     markMessagesAsRead();
   };
 
@@ -119,7 +150,7 @@ export const UserChat = () => {
       .eq('user_id', user?.id)
       .eq('sender_type', 'admin')
       .eq('read', false);
-    
+
     setUnreadCount(0);
   };
 
@@ -151,7 +182,74 @@ export const UserChat = () => {
     };
   };
 
+<<<<<<< HEAD
   const sendMessage = async () => {
+=======
+  const sendAiMessage = async () => {
+    if (!newMessage.trim() || !user) return;
+
+    const userMsg = { sender_type: 'user' as const, message: newMessage.trim() };
+    const updatedHistory = [...aiHistory, userMsg];
+    setAiHistory(updatedHistory);
+    setNewMessage("");
+    setLoading(true);
+
+    // Save user message to database
+    const { error: userMsgError } = await supabase
+      .from('messages')
+      .insert({
+        user_id: user.id,
+        sender_id: user.id,
+        sender_type: 'user',
+        message: userMsg.message,
+      });
+
+    if (userMsgError) {
+      console.error('Error saving user message:', userMsgError);
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-ai', {
+        body: {
+          message: userMsg.message,
+          conversationHistory: updatedHistory.slice(-10),
+        },
+      });
+
+      if (error) throw error;
+
+      const aiMsg = { sender_type: 'ai' as const, message: data.message };
+      // ✅ Always append to existing aiHistory — never replace it
+      setAiHistory(prev => [...prev, aiMsg]);
+
+      // Save AI message to database
+      const { error: aiMsgError } = await supabase
+        .from('messages')
+        .insert({
+          user_id: user.id,
+          sender_id: null,
+          sender_type: 'ai',
+          message: data.message,
+        });
+
+      if (aiMsgError) {
+        console.error('Error saving AI message:', aiMsgError);
+      }
+    } catch (err) {
+      console.error('AI chat error:', err);
+      const errorMsg = { sender_type: 'ai' as const, message: 'Sorry, I encountered an error. Please try again or talk to an admin.' };
+      setAiHistory(prev => [...prev, errorMsg]);
+      toast({
+        title: "Error",
+        description: "Failed to get AI response",
+        variant: "destructive",
+      });
+    }
+    setLoading(false);
+  };
+
+  const sendAdminMessage = async () => {
+>>>>>>> 044db0f9679515332bc7901f8254c423309f085a
     if (!newMessage.trim() || !user) return;
 
     setLoading(true);
@@ -177,6 +275,23 @@ export const UserChat = () => {
     setLoading(false);
   };
 
+<<<<<<< HEAD
+=======
+  const handleSend = () => {
+    if (chatMode === 'ai') {
+      sendAiMessage();
+    } else {
+      sendAdminMessage();
+    }
+  };
+
+  const switchToAdmin = async () => {
+    setChatMode('admin');
+    // loadMessages is triggered by the useEffect on chatMode change.
+    // aiHistory is now protected by the aiHistorySeeded ref so it won't be overwritten.
+  };
+
+>>>>>>> 044db0f9679515332bc7901f8254c423309f085a
   const deleteConversation = async () => {
     if (!user) return;
 
@@ -189,8 +304,14 @@ export const UserChat = () => {
       if (error) throw error;
 
       setMessages([]);
+<<<<<<< HEAD
+=======
+      setAiHistory([]);
+      // ✅ Reset the seed flag so fresh history can be loaded next time
+      aiHistorySeeded.current = false;
+>>>>>>> 044db0f9679515332bc7901f8254c423309f085a
       setShowDeleteConfirm(false);
-      
+
       toast({
         title: "Success",
         description: "Conversation deleted successfully",
@@ -260,7 +381,137 @@ export const UserChat = () => {
     );
   }
 
+<<<<<<< HEAD
   const renderMessages = () => {
+=======
+  const handleGreetingClick = (action: string) => {
+    const greetingMessages: { [key: string]: string } = {
+      inquire: "I want to inquire",
+      report: "Report an issue"
+    };
+
+    if (greetingMessages[action] && user) {
+      setNewMessage(greetingMessages[action]);
+      setTimeout(async () => {
+        const userMsg = { sender_type: 'user' as const, message: greetingMessages[action] };
+        const updatedHistory = [...aiHistory, userMsg];
+        setAiHistory(updatedHistory);
+        setNewMessage("");
+
+        // Save user message to database
+        const { error: userMsgError } = await supabase
+          .from('messages')
+          .insert({
+            user_id: user.id,
+            sender_id: user.id,
+            sender_type: 'user',
+            message: userMsg.message,
+          });
+
+        if (userMsgError) {
+          console.error('Error saving user message:', userMsgError);
+        }
+
+        setLoading(true);
+        try {
+          const { data, error } = await supabase.functions.invoke('chat-ai', {
+            body: {
+              message: greetingMessages[action],
+              conversationHistory: updatedHistory.slice(-10),
+            },
+          });
+          if (error) throw error;
+
+          const aiMsg = { sender_type: 'ai' as const, message: data.message };
+          setAiHistory(prev => [...prev, aiMsg]);
+
+          // Save AI message to database
+          const { error: aiMsgError } = await supabase
+            .from('messages')
+            .insert({
+              user_id: user.id,
+              sender_id: null,
+              sender_type: 'ai',
+              message: data.message,
+            });
+
+          if (aiMsgError) {
+            console.error('Error saving AI message:', aiMsgError);
+          }
+        } catch (err) {
+          console.error('AI chat error:', err);
+          const errorMsg = { sender_type: 'ai' as const, message: 'Sorry, I encountered an error. Please try again or talk to an admin.' };
+          setAiHistory(prev => [...prev, errorMsg]);
+          toast({
+            title: "Error",
+            description: "Failed to get AI response",
+            variant: "destructive",
+          });
+        }
+        setLoading(false);
+      }, 100);
+    }
+  };
+
+  const renderMessages = () => {
+    if (chatMode === 'ai') {
+      if (aiHistory.length === 0) {
+        return (
+          <div className="flex flex-col items-center justify-center h-full text-center p-4 space-y-4">
+            <Bot className="h-10 w-10 text-muted-foreground" />
+            <div className="space-y-3 w-full">
+              <div className="bg-muted rounded-lg px-4 py-3">
+                <p className="text-sm font-medium">Hi there! How can I help you?</p>
+              </div>
+              <p className="text-xs text-muted-foreground">We are here to help you</p>
+              <div className="flex gap-2 justify-center pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => handleGreetingClick('inquire')}
+                >
+                  I want to inquire
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => handleGreetingClick('report')}
+                >
+                  Report an issue
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return aiHistory.map((msg, idx) => (
+        <div
+          key={`ai-${idx}`}
+          className={`flex ${msg.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
+        >
+          <div
+            className={`max-w-[80%] rounded-lg px-4 py-2 ${
+              msg.sender_type === 'user'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted'
+            }`}
+          >
+            {msg.sender_type === 'ai' && (
+              <div className="flex items-center gap-1 mb-1">
+                <Bot className="h-3 w-3" />
+                <span className="text-xs font-medium">AI Assistant</span>
+              </div>
+            )}
+            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+          </div>
+        </div>
+      ));
+    }
+
+>>>>>>> 044db0f9679515332bc7901f8254c423309f085a
     return messages.map((msg) => (
       <div
         key={msg.id}
@@ -284,13 +535,13 @@ export const UserChat = () => {
 
   return (
     <>
-      <div 
+      <div
         className="fixed inset-0 bg-black/20 backdrop-blur-sm"
         style={{ zIndex: 9998 }}
         onClick={() => setIsOpen(false)}
       />
-      
-      <Card 
+
+      <Card
         className="shadow-2xl flex flex-col"
         style={{
           position: 'fixed',
@@ -311,6 +562,7 @@ export const UserChat = () => {
             {activeTab === "ai" ? "AI Assistant" : "Chat with Admin"}
           </CardTitle>
           <div className="flex items-center gap-1">
+<<<<<<< HEAD
             {activeTab === "admin" && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -330,6 +582,33 @@ export const UserChat = () => {
               </DropdownMenu>
             )}
             <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+=======
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="top" sideOffset={8} className="z-[10000]">
+                <DropdownMenuItem
+                  className="text-destructive cursor-pointer"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Conversation
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(false)}
+            >
+>>>>>>> 044db0f9679515332bc7901f8254c423309f085a
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -441,7 +720,10 @@ export const UserChat = () => {
           </AlertDialogHeader>
           <div className="flex gap-3 justify-end">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={deleteConversation}>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={deleteConversation}
+            >
               Delete
             </AlertDialogAction>
           </div>
