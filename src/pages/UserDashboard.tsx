@@ -469,7 +469,7 @@ const UserDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
               <div>
                 <h1 className="text-xl sm:text-2xl lg:text-4xl font-heading font-bold text-foreground">
-                  ashboard
+                  Dashboard
                 </h1>
                 <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
                   Plan, organize, and track your perfect day

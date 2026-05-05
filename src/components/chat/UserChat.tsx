@@ -46,6 +46,8 @@ export const UserChat = () => {
   const [aiHistory, setAiHistory] = useState<{ sender_type: string; message: string }[]>([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // Track whether aiHistory has been seeded from DB already
+  const aiHistorySeeded = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -88,22 +90,13 @@ export const UserChat = () => {
     }
   }, [messages, aiHistory]);
 
-  // Sync AI history whenever messages change
-  useEffect(() => {
-    if (messages.length > 0) {
-      const aiMessages = messages
-        .filter(msg => msg.sender_type === 'user' || msg.sender_type === 'ai')
-        .map(msg => ({
-          sender_type: msg.sender_type,
-          message: msg.message
-        }));
-      setAiHistory(aiMessages);
-    }
-  }, [messages]);
+  // ✅ REMOVED: the useEffect that was syncing aiHistory from messages on every change.
+  // That was the root cause — it overwrote the live AI conversation every time
+  // messages state updated (e.g. when switching tabs and calling loadMessages again).
 
   const loadMessages = async () => {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -117,18 +110,21 @@ export const UserChat = () => {
 
     const allMessages = (data || []) as Message[];
     setMessages(allMessages);
-    
-    // Load AI messages into aiHistory for AI chat mode
-    const aiMessages = allMessages
-      .filter(msg => msg.sender_type === 'user' || msg.sender_type === 'ai')
-      .map(msg => ({
-        sender_type: msg.sender_type,
-        message: msg.message
-      }));
-    
-    // Always set aiHistory when loading messages
-    setAiHistory(aiMessages);
-    
+
+    // ✅ FIX: Only seed aiHistory from DB on the very first load.
+    // After that, aiHistory is managed purely in memory so switching tabs
+    // (AI → Admin → AI) never wipes out the ongoing AI conversation.
+    if (!aiHistorySeeded.current) {
+      const aiMessages = allMessages
+        .filter(msg => msg.sender_type === 'user' || msg.sender_type === 'ai')
+        .map(msg => ({
+          sender_type: msg.sender_type,
+          message: msg.message,
+        }));
+      setAiHistory(aiMessages);
+      aiHistorySeeded.current = true;
+    }
+
     markMessagesAsRead();
   };
 
@@ -139,7 +135,7 @@ export const UserChat = () => {
       .eq('user_id', user?.id)
       .eq('sender_type', 'admin')
       .eq('read', false);
-    
+
     setUnreadCount(0);
   };
 
@@ -205,8 +201,9 @@ export const UserChat = () => {
       if (error) throw error;
 
       const aiMsg = { sender_type: 'ai' as const, message: data.message };
+      // ✅ Always append to existing aiHistory — never replace it
       setAiHistory(prev => [...prev, aiMsg]);
-      
+
       // Save AI message to database
       const { error: aiMsgError } = await supabase
         .from('messages')
@@ -269,7 +266,8 @@ export const UserChat = () => {
 
   const switchToAdmin = async () => {
     setChatMode('admin');
-    await loadMessages();
+    // loadMessages is triggered by the useEffect on chatMode change.
+    // aiHistory is now protected by the aiHistorySeeded ref so it won't be overwritten.
   };
 
   const deleteConversation = async () => {
@@ -285,8 +283,10 @@ export const UserChat = () => {
 
       setMessages([]);
       setAiHistory([]);
+      // ✅ Reset the seed flag so fresh history can be loaded next time
+      aiHistorySeeded.current = false;
       setShowDeleteConfirm(false);
-      
+
       toast({
         title: "Success",
         description: "Conversation deleted successfully",
@@ -325,20 +325,19 @@ export const UserChat = () => {
   }
 
   const handleGreetingClick = (action: string) => {
-    const messages: { [key: string]: string } = {
+    const greetingMessages: { [key: string]: string } = {
       inquire: "I want to inquire",
       report: "Report an issue"
     };
-    
-    if (messages[action] && user) {
-      setNewMessage(messages[action]);
-      // Auto-send after a brief delay
+
+    if (greetingMessages[action] && user) {
+      setNewMessage(greetingMessages[action]);
       setTimeout(async () => {
-        const userMsg = { sender_type: 'user' as const, message: messages[action] };
+        const userMsg = { sender_type: 'user' as const, message: greetingMessages[action] };
         const updatedHistory = [...aiHistory, userMsg];
         setAiHistory(updatedHistory);
         setNewMessage("");
-        
+
         // Save user message to database
         const { error: userMsgError } = await supabase
           .from('messages')
@@ -352,19 +351,20 @@ export const UserChat = () => {
         if (userMsgError) {
           console.error('Error saving user message:', userMsgError);
         }
-        
+
         setLoading(true);
         try {
           const { data, error } = await supabase.functions.invoke('chat-ai', {
             body: {
-              message: messages[action],
+              message: greetingMessages[action],
               conversationHistory: updatedHistory.slice(-10),
             },
           });
           if (error) throw error;
+
           const aiMsg = { sender_type: 'ai' as const, message: data.message };
           setAiHistory(prev => [...prev, aiMsg]);
-          
+
           // Save AI message to database
           const { error: aiMsgError } = await supabase
             .from('messages')
@@ -426,6 +426,7 @@ export const UserChat = () => {
           </div>
         );
       }
+
       return aiHistory.map((msg, idx) => (
         <div
           key={`ai-${idx}`}
@@ -473,13 +474,13 @@ export const UserChat = () => {
 
   return (
     <>
-      <div 
+      <div
         className="fixed inset-0 bg-black/20 backdrop-blur-sm"
         style={{ zIndex: 9998 }}
         onClick={() => setIsOpen(false)}
       />
-      
-      <Card 
+
+      <Card
         className="shadow-2xl flex flex-col"
         style={{
           position: 'fixed',
@@ -520,7 +521,7 @@ export const UserChat = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side="top" sideOffset={8} className="z-[10000]">
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="text-destructive cursor-pointer"
                   onClick={() => setShowDeleteConfirm(true)}
                 >
@@ -609,7 +610,10 @@ export const UserChat = () => {
           </AlertDialogHeader>
           <div className="flex gap-3 justify-end">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={deleteConversation}>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={deleteConversation}
+            >
               Delete
             </AlertDialogAction>
           </div>
