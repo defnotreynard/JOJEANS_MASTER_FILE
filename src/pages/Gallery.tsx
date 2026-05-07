@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { UserChat } from '@/components/chat/UserChat';
+import { useAuth } from '@/hooks/useAuth';
 import { Search, MapPin, Users, Calendar, Heart, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,6 +20,7 @@ import {
 import EventDetailsModal from '@/components/EventDetailsModal';
 
 const Gallery = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [styleFilter, setStyleFilter] = useState('all');
   const [venueFilter, setVenueFilter] = useState('all');
@@ -248,6 +251,7 @@ const Gallery = () => {
         onClose={() => setIsModalOpen(false)}
         event={selectedEvent}
       />
+      <UserChat />
     </div>
   );
 };

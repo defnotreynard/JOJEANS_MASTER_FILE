@@ -44,6 +44,7 @@ export const UserChat = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<"admin" | "ai">("ai");
+  const isGuest = !user;
   const [aiMessages, setAiMessages] = useState<{ id: string; role: "user" | "ai"; message: string }[]>([
     { id: "welcome", role: "ai", message: "Hi! I'm Jojeans AI Assistant ✨ Pick a suggestion below or ask me anything!" },
   ]);
@@ -335,17 +336,19 @@ export const UserChat = () => {
           </div>
         </CardHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "admin" | "ai")} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="mx-4 grid grid-cols-2">
+        <Tabs value={isGuest ? "ai" : activeTab} onValueChange={(v) => setActiveTab(v as "admin" | "ai")} className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className={`mx-4 grid ${isGuest ? "grid-cols-1" : "grid-cols-2"}`}>
             <TabsTrigger value="ai" className="gap-1.5">
               <Sparkles className="h-3.5 w-3.5" /> AI Assistant
             </TabsTrigger>
-            <TabsTrigger value="admin" className="gap-1.5">
-              <UserRound className="h-3.5 w-3.5" /> Admin
-              {unreadCount > 0 && (
-                <Badge className="h-4 min-w-4 px-1 text-[10px]">{unreadCount}</Badge>
-              )}
-            </TabsTrigger>
+            {!isGuest && (
+              <TabsTrigger value="admin" className="gap-1.5">
+                <UserRound className="h-3.5 w-3.5" /> Admin
+                {unreadCount > 0 && (
+                  <Badge className="h-4 min-w-4 px-1 text-[10px]">{unreadCount}</Badge>
+                )}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="admin" className="flex-1 flex flex-col p-4 pt-2 space-y-4 overflow-hidden mt-0 min-h-0 data-[state=inactive]:hidden">

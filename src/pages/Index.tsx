@@ -10,8 +10,11 @@ import VenuesSection from '@/components/VenuesSection';
 // import InspirationGallery from '@/components/InspirationGallery';
 import Testimonials from '@/components/Testimonials';
 import Footer from '@/components/Footer';
+import { UserChat } from '@/components/chat/UserChat';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
+  const { user } = useAuth();
   return (
     <div className="min-h-screen bg-background page-transition">
       <Navigation />
@@ -28,6 +31,7 @@ const Index = () => {
         <Testimonials />
       </main>
       <Footer />
+      <UserChat />
     </div>
   );
 };

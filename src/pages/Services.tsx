@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { UserChat } from '@/components/chat/UserChat';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Camera, Utensils, Lightbulb, Music, Cake, Mail, Users, Flower, Car, Building, Monitor, ArrowRight, Heart, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +26,7 @@ import entranceImg from '@/assets/service-entrance.jpg';
 import danceFloorImg from '@/assets/service-dance-floor.jpg';
 
 const Services = () => {
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedService, setSelectedService] = useState<any>(null);
 
@@ -553,6 +556,7 @@ const Services = () => {
       </section>
 
       <Footer />
+      <UserChat />
     </div>
   );
 };

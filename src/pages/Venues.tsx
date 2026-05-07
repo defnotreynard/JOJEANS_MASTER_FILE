@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { UserChat } from '@/components/chat/UserChat';
+import { useAuth } from '@/hooks/useAuth';
 import { MapPin, Star, Users, Calendar, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import VenueDetailsModal from '@/components/VenueDetailsModal';
 
 const Venues = () => {
+  const { user } = useAuth();
   const [selectedVenue, setSelectedVenue] = useState<typeof venues[0] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -327,6 +330,7 @@ const Venues = () => {
       />
 
       <Footer />
+      <UserChat />
     </div>
   );
 };

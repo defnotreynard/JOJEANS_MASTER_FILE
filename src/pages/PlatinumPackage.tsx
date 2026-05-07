@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { UserChat } from '@/components/chat/UserChat';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
@@ -276,6 +277,7 @@ const PlatinumPackage = () => {
         onClose={() => setShowAuthModal(false)} 
         defaultMode="signin"
       />
+      <UserChat />
     </div>
   );
 };
